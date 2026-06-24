@@ -21,16 +21,32 @@ jobs:
       - name: Appliquer icone WAREAST
         run: |
           pip install Pillow -q
-          python3 -c "
-          from PIL import Image; import os
+          python3 << 'PYEOF'
+          from PIL import Image
+          import os, shutil
           img = Image.open('icon.png').convert('RGBA')
-          base='android/app/src/main/res'
+          base = 'android/app/src/main/res'
           for f,s in [('mipmap-mdpi',48),('mipmap-hdpi',72),('mipmap-xhdpi',96),('mipmap-xxhdpi',144),('mipmap-xxxhdpi',192)]:
-            os.makedirs(f'{base}/{f}',exist_ok=True)
-            r=img.resize((s,s),Image.LANCZOS)
+            os.makedirs(f'{base}/{f}', exist_ok=True)
+            r = img.resize((s,s), Image.LANCZOS)
             r.save(f'{base}/{f}/ic_launcher.png')
             r.save(f'{base}/{f}/ic_launcher_round.png')
-          "
+            print(f'✓ {f} {s}px')
+          # Supprimer les adaptive icons XML qui écrasent les PNG
+          for xml in [
+            f'{base}/mipmap-anydpi-v26/ic_launcher.xml',
+            f'{base}/mipmap-anydpi-v26/ic_launcher_round.xml',
+          ]:
+            if os.path.exists(xml):
+              os.remove(xml)
+              print(f'✓ Supprimé: {xml}')
+          # Supprimer les drawables vectoriels par défaut
+          for d in ['ic_launcher_background.xml','ic_launcher_foreground.xml']:
+            p = f'{base}/../drawable/{d}'
+            if os.path.exists(p):
+              os.remove(p)
+          print('✓ Icone WAREAST appliquee!')
+          PYEOF
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
