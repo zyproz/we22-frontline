@@ -1,0 +1,21 @@
+{
+  "appId": "com.we22.frontline",
+  "appName": "WE22 Frontline",
+  "webDir": "dist",
+  "server": {
+    "url": "https://we22-frontline.pages.dev",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false,
+    "loggingBehavior": "none"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": false
+    }
+  }
+}
