@@ -3,7 +3,7 @@
   "appName": "WE22 Frontline",
   "webDir": "dist",
   "server": {
-    "url": "https://we22-frontline.pages.dev",
+    "url": "https://we22-frontline.onrender.com",
     "cleartext": false,
     "androidScheme": "https"
   },
