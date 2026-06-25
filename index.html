@@ -4650,7 +4650,7 @@ body.drone-active #btn-fire-l{
       <div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.4);font-family:'Courier New',monospace">CODE ESCOUADE</div>
       <button onclick="copyCode()" style="background:none;border:none;color:#FFD700;font-size:11px;cursor:pointer;font-family:'Courier New',monospace">COPIER</button>
     </div>
-    <div id="room-code-big" style="font-size:28px;letter-spacing:8px;font-weight:bold;color:#FFD700;text-align:center;margin-bottom:10px;font-family:'Courier New',monospace">------</div>
+    <div id="room-code-big-old" style="font-size:28px;letter-spacing:8px;font-weight:bold;color:#FFD700;text-align:center;margin-bottom:10px;font-family:'Courier New',monospace">------</div>
     <div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.4);margin-bottom:6px;font-family:'Courier New',monospace">MEMBRES</div>
     <div id="squad-members"></div>
   </div>
@@ -7451,12 +7451,13 @@ function v24_create(){
   roomCode = code; inRoom = true;
   v24_players = {};
   v24_players[myId] = {id:myId, name:uname, sfk:'UA_REG'};
+  // Afficher le code IMMÉDIATEMENT (pas d'attente Ably)
+  var box2 = document.getElementById('v24code'); if(box2) box2.style.display='block';
+  var rb2 = document.getElementById('room-code-big'); if(rb2) rb2.textContent=code;
+  var be2 = document.getElementById('btn-enter'); if(be2) be2.style.display='block';
   initAbly(function(){
     chan = ablyClient.channels.get('fl22_' + code);
     setupChan();
-    var box = document.getElementById('v24code'); if(box) box.style.display='block';
-    var rb = document.getElementById('room-code-big'); if(rb) rb.textContent=code;
-    var be = document.getElementById('btn-enter'); if(be) be.style.display='block';
     if(btn){ btn.textContent='PARTIE CREEE'; btn.disabled=false; }
     setSt('ok','MULTI ACTIF','#44CC88');
     chan.publish('join',{id:myId,sfk:'UA_REG',username:uname});
@@ -7473,12 +7474,13 @@ function v24_join(){
   roomCode = code; inRoom = true;
   v24_players = {};
   v24_players[myId] = {id:myId, name:uname, sfk:'UA_REG'};
+  // Afficher le code IMMÉDIATEMENT
+  var box3 = document.getElementById('v24code'); if(box3) box3.style.display='block';
+  var rb3 = document.getElementById('room-code-big'); if(rb3) rb3.textContent=code;
+  var be3 = document.getElementById('btn-enter'); if(be3) be3.style.display='block';
   initAbly(function(){
     chan = ablyClient.channels.get('fl22_' + code);
     setupChan();
-    var box = document.getElementById('v24code'); if(box) box.style.display='block';
-    var rb = document.getElementById('room-code-big'); if(rb) rb.textContent=code;
-    var be = document.getElementById('btn-enter'); if(be) be.style.display='block';
     if(btn){ btn.textContent='REJOINT'; btn.disabled=false; }
     setSt('ok','MULTI ACTIF','#44CC88');
     chan.publish('join',{id:myId,sfk:'UA_REG',username:uname});
@@ -7547,52 +7549,21 @@ function v24_selWpn(el){
 
 // ─── SPAWN: lance le moteur 3D et demarre le jeu ──────────────────
 function v24_spawn(){
-  // Cacher le deploy panel
+  // S'assurer que la faction est choisie
+  if(!faction){ alert('Choisissez Ukraine ou Russie'); return; }
   var dp = document.getElementById('deploypanel');
   if(dp) dp.style.display='none';
-  // Utiliser le _doStart original qui gere TOUT correctement
-  // => evite le black screen car initEngine() est appele au bon moment
   _doStart_v24();
 }
 
 function _doStart_v24(){
-  myUsername = (document.getElementById('user-name').value||myUsername||'Soldat').trim()||'Soldat';
-  sfKey = faction+'_'+subfaction;
-  if(!tapeColor) tapeColor=(faction==='UA'?0xFFD700:0xCC2222);
-  // Cacher menu, montrer HUD
-  document.getElementById('menu').style.display='none';
-  document.getElementById('hud').style.display='block';
-  document.getElementById('score-hud').style.display='block';
-  if(!isMobile){ var clk=document.getElementById('clk'); if(clk)clk.style.display='block'; }
-  // Spawn position
-  var spZ = faction==='UA' ? -82 : 82;
-  var spX = (Math.random()-.5)*16;
-  pPos.set(spX, tH(spX,spZ)+2, spZ);
-  pYaw = faction==='UA' ? Math.PI : 0;
-  // Montrer minimap
+  // Deléguer au _doStart() original qui gere tout correctement
+  // On s'assure juste que les variables sont bien définies
+  if(!faction || faction==='UA'){ faction='UA'; subfaction='REG'; sfKey='UA_REG'; }
+  if(!weapon){ weapon=(faction==='UA'?WEAPONS_UA:WEAPONS_RU)[0].id; }
+  if(!myUsername){ myUsername=(document.getElementById('user-name').value||'Soldat').trim()||'Soldat'; }
   document.getElementById('minimap-wrap').style.display='block';
-  // Lancer le moteur
-  if(!_soldierGLTF){
-    var lm=document.getElementById('load-msg'); if(lm)lm.style.display='block';
-    loadSoldierModel(function(){
-      if(lm)lm.style.display='none';
-      initEngine(); gameOn=true; updateHUD();
-      setTimeout(function(){
-        var b=document.getElementById('btn-wpn-ig'); if(b)b.style.display='flex';
-        var wl2=document.getElementById('wpn-lbl'); if(wl2)wl2.style.display='block';
-      },200);
-      if(renderer) renderer.domElement.style.filter='';
-    });
-  } else {
-    initEngine(); gameOn=true; updateHUD();
-    if(renderer) renderer.domElement.style.filter='';
-  }
-  lastT = performance.now()/1000;
-  requestAnimationFrame(loop);
-  if(scene && scene.children.includes(camera)){ scene.remove(camera); _weaponScene.add(camera); }
-  if(!isMobile) setTimeout(function(){ document.getElementById('c').requestPointerLock(); },300);
-  if(chan) chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
-  if(chan) chan.publish('pos',{id:myId,x:pPos.x,y:pPos.y,z:pPos.z,yaw:pYaw,sfk:sfKey,health:100,username:myUsername});
+  _doStart(); // appel original - gere tout: renderer, scene, map, loop
 }
 
 // ─── DASHBOARD (hamburger) ──────────────────────────────────────────
