@@ -1,0 +1,16 @@
+{
+  "name": "we22-frontline",
+  "version": "1.0.0",
+  "description": "WE22 Frontline – FPS multijoueur",
+  "scripts": {
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}
