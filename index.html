@@ -7818,31 +7818,30 @@ function _doStart(){
   const spZ=faction==='UA'?-82:82;
   const spX=(Math.random()-.5)*16;
   pPos.set(spX,tH(spX,spZ)+2,spZ);pYaw=faction==='UA'?Math.PI:0;
-  /* FIX v25: requestAnimationFrame + scene check DANS le callback pour eviter le crash
-     quand _soldierGLTF n'est pas encore charge (scene=null = black screen) */
-  function _afterInit(){
-    gameOn=true;updateHUD();
-    setTimeout(function(){var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';},200);
-    if(renderer)renderer.domElement.style.filter='';
-    lastT=performance.now()/1000;
-    requestAnimationFrame(loop);
-    // Safe null-check: scene est creee par initEngine() AVANT ce point
-    if(scene&&scene.children&&scene.children.includes(camera)){scene.remove(camera);_weaponScene.add(camera);}
-    if(!isMobile)setTimeout(function(){var cv=document.getElementById('c');if(cv)cv.requestPointerLock();},300);
-    // Montrer minimap
-    var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='block';
-  }
+  /* FIX v25 FINAL: initEngine() et requestAnimationFrame() TOUJOURS immédiats.
+     Le modele soldiat se charge en arriere-plan. Si le chargement echoue,
+     la map et les armes s'affichent quand meme (comme en v21). */
+  // Charger le modele en arriere-plan (non-bloquant)
   if(!_soldierGLTF){
     var _lm=document.getElementById('load-msg');if(_lm)_lm.style.display='block';
     loadSoldierModel(function(){
       if(_lm)_lm.style.display='none';
-      initEngine();
-      _afterInit();
+      // Reconstruire arme avec donnees modele (mains du soldat visibles)
+      try{if(wpGroup){_weaponScene.remove(wpGroup);wpGroup=null;}buildWeapon();}catch(e){}
     });
-  } else {
-    initEngine();
-    _afterInit();
   }
+  // TOUJOURS demarrer le moteur immediatement (pas besoin du modele pour la map)
+  initEngine();
+  gameOn=true;
+  updateHUD();
+  if(renderer)renderer.domElement.style.filter='';
+  lastT=performance.now()/1000;
+  requestAnimationFrame(loop);
+  // Null-safe: scene est cree par initEngine() juste au-dessus
+  if(scene&&scene.children&&scene.children.includes(camera)){scene.remove(camera);_weaponScene.add(camera);}
+  if(!isMobile)setTimeout(function(){var cv=document.getElementById('c');if(cv)cv.requestPointerLock();},300);
+  setTimeout(function(){var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';},200);
+  var _mw=document.getElementById('minimap-wrap');if(_mw)_mw.style.display='block';
 }
 
 function startGame(){_doStart();}
