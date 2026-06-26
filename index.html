@@ -4618,6 +4618,20 @@ body.drone-active #btn-fire-l{
       <button onclick="v26_copyCode()" style="background:none;border:none;color:#FFD700;font-size:10px;cursor:pointer;font-family:'Courier New',monospace">COPIER LE CODE</button>
     </div>
   </div>
+  <!-- PARTIES DISPONIBLES - visible tout de suite, cliquables -->
+  <div id="room-list-section" style="margin-top:10px;width:100%;max-width:420px">
+    <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);
+      margin-bottom:6px;font-family:'Courier New',monospace;text-align:center">PARTIES DISPONIBLES</div>
+    <div id="room-list" style="min-height:40px">
+      <div id="room-list-empty" style="text-align:center;font-size:11px;
+        color:rgba(255,255,255,.25);font-family:'Courier New',monospace;padding:8px">
+        Aucune partie... Cree la premiere !</div>
+    </div>
+    <button onclick="v26_refreshRooms()" style="display:block;margin:4px auto 0;
+      background:none;border:none;color:rgba(255,255,255,.3);font-size:10px;
+      cursor:pointer;font-family:'Courier New',monospace">&#8635; Actualiser</button>
+  </div>
+
   <div id="lobby-section" style="display:none;width:100%;max-width:480px;margin:8px auto">
     <div id="lob-count" style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:4px;font-family:'Courier New',monospace;text-align:center">0 joueur(s)</div>
     <div id="lob-players" style="margin-bottom:10px;font-size:11px;color:rgba(255,255,255,.5);font-family:'Courier New',monospace;text-align:center"></div>
@@ -8118,6 +8132,105 @@ function _drawFPVCanvas(pitch,roll,yaw,alt,spd,bat){
 
 <script>
 /* ================================================================
+   SYSTEME DE DECOUVERTE GLOBAL - fl22_lobby_v1
+   Toutes les parties actives sont visibles et rejoignables
+   ================================================================ */
+
+var _lobChan = null;          // Canal de découverte global
+var _activeRooms = {};        // {code: {host, players, ts}}
+var _announceTimer = null;    // Heartbeat d'annonce
+
+/* Initialiser le canal de découverte (des le chargement de la page) */
+function v26_initDiscovery(){
+  if(_lobChan) return;
+  initAbly(function(){
+    _lobChan = ablyClient.channels.get('fl22_lobby_v1');
+    /* Recevoir les annonces de parties */
+    _lobChan.subscribe('room', function(msg){
+      var d = msg.data; if(!d||!d.code) return;
+      _activeRooms[d.code] = {host:d.host||'?', players:d.players||1, ts:Date.now()};
+      v26_renderRoomList();
+    });
+    /* Recevoir les fermetures de parties */
+    _lobChan.subscribe('bye', function(msg){
+      var d = msg.data; if(d&&d.code) delete _activeRooms[d.code];
+      v26_renderRoomList();
+    });
+    /* Demander les parties actives */
+    _lobChan.publish('ping', {id:myId});
+  });
+}
+
+/* Annoncer notre partie au canal global */
+function v26_announceRoom(){
+  if(!_lobChan || !roomCode) return;
+  var count = Object.keys(_v26p).length;
+  _lobChan.publish('room', {
+    code: roomCode,
+    host: myUsername || 'Soldat',
+    players: count
+  });
+}
+
+/* Rendre la liste des parties et la mettre a jour */
+function v26_renderRoomList(){
+  var el = document.getElementById('room-list'); if(!el) return;
+  /* Nettoyer les parties de +60s sans mise a jour */
+  var now = Date.now();
+  for(var k in _activeRooms){
+    if(now - _activeRooms[k].ts > 60000) delete _activeRooms[k];
+  }
+  var codes = Object.keys(_activeRooms);
+  var empty = document.getElementById('room-list-empty');
+  if(codes.length === 0){
+    if(empty) empty.style.display='block';
+    return;
+  }
+  if(empty) empty.style.display='none';
+  var html = '';
+  for(var i=0; i<codes.length; i++){
+    var code = codes[i]; var r = _activeRooms[code];
+    var isMyRoom = (code === roomCode);
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,' + (isMyRoom?'.25':'.1') + ');' +
+      'border-radius:8px;padding:8px 12px;margin-bottom:6px;">' +
+      '<div>' +
+      '<div style="font-size:12px;font-weight:bold;color:' + (isMyRoom?'#FFD700':'#fff') + ';font-family:monospace">' +
+      (r.host||'?') + (isMyRoom?' (votre partie)':'') + '</div>' +
+      '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace">' +
+      r.players + ' joueur(s) | Code: ' + code + '</div></div>' +
+      (isMyRoom ? '' :
+        '<button data-code="' + code + '" onclick="v26_joinFromList(this)"' +
+        ' style="padding:6px 14px;background:rgba(0,200,100,.2);border:1px solid rgba(0,200,100,.4);' +
+        'color:#44FF88;border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace">REJOINDRE</button>') +
+      '</div>';
+  }
+  el.innerHTML = html + (empty ? empty.outerHTML : '');
+}
+
+/* Rejoindre une partie depuis la liste */
+function v26_joinFromList(btn){
+  var code = btn.getAttribute('data-code');
+  if(!code) return;
+  var ri = document.getElementById('room-input'); if(ri) ri.value = code;
+  v26_join();
+}
+
+/* Actualiser manuellement */
+function v26_refreshRooms(){
+  if(_lobChan) _lobChan.publish('ping', {id:myId});
+  else v26_initDiscovery();
+}
+
+/* Initialiser la decouverte des que la page est prete */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', v26_initDiscovery);
+} else {
+  setTimeout(v26_initDiscovery, 500);
+}
+
+
+/* ================================================================
    WE22 v26 - Systeme escouades + fixes (script tag separe, zéro modif v21)
    ================================================================ */
 
@@ -8217,6 +8330,21 @@ function v26_create(){
     var ls=document.getElementById('lobby-section'); if(ls) ls.style.display='block';
     setSt('ok','MULTI ACTIF','#44CC88');
     chan.publish('join',{id:myId,sfk:'',username:uname});
+    /* Annoncer la partie dans le lobby global */
+    setTimeout(function(){v26_announceRoom();},500);
+    if(_announceTimer) clearInterval(_announceTimer);
+    _announceTimer = setInterval(function(){
+      if(inRoom&&roomCode) v26_announceRoom();
+      else{clearInterval(_announceTimer);_announceTimer=null;}
+    }, 20000);
+    /* Annoncer la partie dans le lobby global */
+    v26_announceRoom();
+    /* Heartbeat: re-annoncer toutes les 20s */
+    if(_announceTimer) clearInterval(_announceTimer);
+    _announceTimer = setInterval(function(){
+      if(inRoom && roomCode) v26_announceRoom();
+      else{ clearInterval(_announceTimer); _announceTimer=null; }
+    }, 20000);
   });
 }
 
@@ -8240,6 +8368,10 @@ function v26_join(){
     var ls=document.getElementById('lobby-section'); if(ls) ls.style.display='block';
     setSt('ok','MULTI ACTIF','#44CC88');
     chan.publish('join',{id:myId,sfk:'',username:uname});
+    /* Annoncer la partie dans le lobby global */
+    v26_announceRoom();
+    /* Mettre a jour la liste */
+    v26_renderRoomList();
   });
 }
 
@@ -8294,6 +8426,7 @@ function v26_joinSF(btn){
   if(chan) chan.publish('join',{id:myId,sfk:k,username:myUsername});
   v26_renderSquads(sf.f);
   var bs=document.getElementById('btn-spawn'); if(bs) bs.style.display='block';
+  v26_announceRoom();
 }
 
 var _v26_spawned = false;
@@ -8319,8 +8452,11 @@ function v26_spawn(){
 
 function v26_updateLobby(){
   var list=Object.values(_v26p);
+  /* Compter AUSSI les remotes (joueurs en jeu) */
+  var remoteCount = typeof remotes !== 'undefined' ? Object.keys(remotes).length : 0;
+  var totalCount = Math.max(list.length, 1 + remoteCount);
   var lc=document.getElementById('lob-count');
-  if(lc) lc.textContent=list.length+' joueur(s) connecte(s)';
+  if(lc) lc.textContent=totalCount+' joueur(s) connecte(s)';
   var html='';
   for(var i=0;i<list.length;i++){
     var p=list[i]; var sf=_SFX[p.sfk||''];
@@ -8368,6 +8504,8 @@ function v26_dashChg(btn){
 
 function leaveSquad(){
   if(chan){ try{chan.publish('bye',{id:myId});}catch(e){} chan.unsubscribe(); }
+  if(_lobChan&&roomCode){try{_lobChan.publish('bye',{code:roomCode});}catch(e){}}
+  if(_announceTimer){clearInterval(_announceTimer);_announceTimer=null;}
   chan=null; roomCode=null; inRoom=false; _v26p={};
   closeSquadPanel();
   var pl=document.getElementById('player-labels'); if(pl) pl.innerHTML='';
@@ -8406,6 +8544,7 @@ function v26_onJoin(d){
   _v26p[d.id]={id:d.id,name:d.username||'Joueur',sfk:d.sfk||''};
   if(remotes[d.id]){ remotes[d.id].username=d.username; if(d.sfk) remotes[d.id].sfk=d.sfk; }
   v26_updateLobby(); v26_updateDash();
+  v26_announceRoom(); // Mettre a jour le count de joueurs
 }
 
 /* ── MINIMAP ───────────────────────────────────────────────────── */
