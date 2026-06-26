@@ -8301,7 +8301,8 @@ function v26_spawn(){
     if(typeof sfKey==='undefined'||!sfKey){ sfKey=faction+'_'+subfaction; }
     if(typeof weapon==='undefined'||!weapon){ weapon=(faction==='UA'?WEAPONS_UA:WEAPONS_RU)[0].id; }
     if(typeof tapeColor==='undefined'||!tapeColor){ tapeColor=(faction==='UA'?0xFFD700:0xCC2222); }
-    if(typeof selF==='function') selF(faction, subfaction);
+    // selF maintenant overridden - juste verifier les variables
+    sfKey = faction + '_' + subfaction;
     startGame();
   } catch(e){
     alert('Erreur spawn: '+e.message);
@@ -8465,6 +8466,12 @@ loop = function(ts){
 /* Hamburger -> openSquadPanel */
 var _v26_orig_cycleWpnIG = typeof cycleWpnIG !== 'undefined' ? cycleWpnIG : null;
 function cycleWpnIG(){ openSquadPanel(); }
+
+/* Override selF + selSide: versions v21 cherchent elements supprimes -> crash */
+function selF(f,sf){
+  faction=f; subfaction=sf; sfKey=f+'_'+sf;
+}
+function selSide(side){ v26_selFaction(side); }
 
 /* Compat aliases */
 function createRoom(){ v26_create(); }
