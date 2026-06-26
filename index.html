@@ -8293,9 +8293,20 @@ function v26_joinSF(btn){
 }
 
 function v26_spawn(){
-  if(!sfKey||!faction){ alert('Choisissez une escouade'); return; }
-  selF(faction, subfaction);
-  startGame();
+  try{
+    if(!sfKey||!faction){ alert('Choisissez une escouade'); return; }
+    // S'assurer que les variables sont bien definies
+    if(typeof faction==='undefined'||!faction){ faction='UA'; }
+    if(typeof subfaction==='undefined'||!subfaction){ subfaction='REG'; }
+    if(typeof sfKey==='undefined'||!sfKey){ sfKey=faction+'_'+subfaction; }
+    if(typeof weapon==='undefined'||!weapon){ weapon=(faction==='UA'?WEAPONS_UA:WEAPONS_RU)[0].id; }
+    if(typeof tapeColor==='undefined'||!tapeColor){ tapeColor=(faction==='UA'?0xFFD700:0xCC2222); }
+    if(typeof selF==='function') selF(faction, subfaction);
+    startGame();
+  } catch(e){
+    alert('Erreur spawn: '+e.message);
+    console.error('[v26_spawn]', e);
+  }
 }
 
 function v26_updateLobby(){
