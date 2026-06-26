@@ -4577,21 +4577,24 @@ body.drone-active #btn-fire-l{
 <div id="orient"><div style="font-size:52px">📱</div><div>Tourne en mode paysage</div></div>
 <button id="fs-btn" onclick="toggleFs()" title="Plein écran">⛶</button>
 
-<!-- MENU (Phase 1 + Lobby) -->
+<!-- MENU - Server Browser + Lobby -->
 <div id="menu">
   <div class="m-title">WAR EAST</div>
   <div class="m-sub">2022 - FRONTLINE</div>
+
+  <!-- Pseudo + Settings -->
   <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:8px 0">
     <input id="user-name" maxlength="14" placeholder="Pseudo" value="Soldat"
       style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
       color:#fff;padding:8px 14px;font-size:14px;border-radius:8px;
-      font-family:'Courier New',monospace;width:180px;text-align:center">
+      font-family:'Courier New',monospace;width:190px;text-align:center">
     <button onclick="toggleSettings()" style="background:rgba(255,255,255,.1);
       border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 11px;
       font-size:18px;border-radius:8px;cursor:pointer">&#9881;</button>
   </div>
-  <div id="settings-panel" style="display:none;margin:4px auto;background:rgba(0,0,0,.45);
-    border-radius:8px;padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;color:#ccc;max-width:300px">
+  <div id="settings-panel" style="display:none;margin:4px auto;
+    background:rgba(0,0,0,.45);border-radius:8px;padding:10px 14px;
+    font-family:'Courier New',monospace;font-size:12px;color:#ccc;max-width:300px">
     <div>Sensibilite : <b id="sens-val">1.0</b>x</div>
     <input type="range" id="sens-slider" min="0.3" max="3.5" step="0.1" value="1.0"
       oninput="setSens(this.value)" style="width:100%;margin:4px 0;accent-color:#FFD700">
@@ -4599,69 +4602,95 @@ body.drone-active #btn-fire-l{
     <input type="range" id="fov-slider" min="70" max="120" step="2" value="98"
       oninput="setFovBase(this.value)" style="width:100%;margin:4px 0;accent-color:#FFD700">
   </div>
-  <div class="room-section" style="margin-top:8px">
-    <div class="room-row">
-      <button class="room-btn" id="btn-create" onclick="v26_create()"
-        style="width:100%;background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.4);
-        color:#FFD700;padding:12px;font-size:14px;letter-spacing:2px">CREER UNE PARTIE</button>
+
+  <!-- CREER UNE PARTIE -->
+  <button id="btn-create" onclick="srv_create()"
+    style="width:100%;max-width:360px;padding:13px;margin-top:10px;
+    background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);
+    color:#FFD700;border-radius:8px;font-size:14px;letter-spacing:2px;
+    cursor:pointer;font-family:'Courier New',monospace">CREER UNE PARTIE</button>
+
+  <!-- PARTIES DISPONIBLES -->
+  <div style="width:100%;max-width:380px;margin-top:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);
+        font-family:'Courier New',monospace">PARTIES DISPONIBLES</div>
+      <button onclick="srv_refresh()" style="background:none;border:none;
+        color:rgba(255,255,255,.35);font-size:14px;cursor:pointer;padding:0 4px">&#8635;</button>
     </div>
-    <div class="room-or">OU REJOINDRE</div>
-    <div class="room-row">
-      <input id="room-input" maxlength="6" placeholder="CODE" oninput="this.value=this.value.toUpperCase()"
-        style="flex:1;font-size:16px;letter-spacing:4px;text-align:center">
-      <button class="room-btn" id="btn-join" onclick="v26_join()">REJOINDRE</button>
+    <div id="srv-list" style="min-height:50px">
+      <div id="srv-empty" style="text-align:center;font-size:11px;padding:12px;
+        color:rgba(255,255,255,.25);font-family:'Courier New',monospace">
+        Recherche de parties...</div>
     </div>
-    <div id="g-code-box" style="display:none;margin-top:8px;text-align:center;
-      background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.18);border-radius:8px;padding:8px">
-      <div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:2px;font-family:'Courier New',monospace">CODE PARTIE</div>
-      <div id="g-code-big" style="font-size:28px;letter-spacing:8px;font-weight:bold;color:#FFD700;font-family:'Courier New',monospace">------</div>
-      <button onclick="v26_copyCode()" style="background:none;border:none;color:#FFD700;font-size:10px;cursor:pointer;font-family:'Courier New',monospace">COPIER LE CODE</button>
-    </div>
-  </div>
-  <!-- PARTIES DISPONIBLES - visible tout de suite, cliquables -->
-  <div id="room-list-section" style="margin-top:10px;width:100%;max-width:420px">
-    <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);
-      margin-bottom:6px;font-family:'Courier New',monospace;text-align:center">PARTIES DISPONIBLES</div>
-    <div id="room-list" style="min-height:40px">
-      <div id="room-list-empty" style="text-align:center;font-size:11px;
-        color:rgba(255,255,255,.25);font-family:'Courier New',monospace;padding:8px">
-        Aucune partie... Cree la premiere !</div>
-    </div>
-    <button onclick="v26_refreshRooms()" style="display:block;margin:4px auto 0;
-      background:none;border:none;color:rgba(255,255,255,.3);font-size:10px;
-      cursor:pointer;font-family:'Courier New',monospace">&#8635; Actualiser</button>
   </div>
 
-  <div id="lobby-section" style="display:none;width:100%;max-width:480px;margin:8px auto">
-    <div id="lob-count" style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:4px;font-family:'Courier New',monospace;text-align:center">0 joueur(s)</div>
-    <div id="lob-players" style="margin-bottom:10px;font-size:11px;color:rgba(255,255,255,.5);font-family:'Courier New',monospace;text-align:center"></div>
-    <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);margin-bottom:8px;font-family:'Courier New',monospace;text-align:center">CHOISIR UN CAMP</div>
-    <div class="fg" style="justify-content:center;gap:10px;margin-bottom:12px">
-      <button class="fc" id="fc-ua" onclick="v26_selFaction('UA')" style="flex:1;max-width:190px">
-        <div class="fc-flag">&#127482;&#127462;</div><div class="fc-name">UKRAINE</div>
+  <!-- OU rejoindre par code -->
+  <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.3);
+    margin:10px 0 6px;font-family:'Courier New',monospace">OU REJOINDRE PAR CODE</div>
+  <div style="display:flex;gap:8px;width:100%;max-width:380px">
+    <input id="room-input" maxlength="6" placeholder="CODE"
+      oninput="this.value=this.value.toUpperCase()"
+      style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+      color:#fff;padding:10px 14px;font-size:16px;border-radius:8px;
+      font-family:'Courier New',monospace;text-align:center;letter-spacing:4px">
+    <button id="btn-join" onclick="srv_joinByCode()"
+      style="padding:10px 18px;background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;
+      font-size:12px;cursor:pointer;font-family:'Courier New',monospace">REJOINDRE</button>
+  </div>
+
+  <!-- LOBBY: Faction + Escouade (caché jusqu'a connexion) -->
+  <div id="lobby-in-menu" style="display:none;width:100%;max-width:380px;margin-top:12px">
+    <!-- Code de la partie -->
+    <div style="text-align:center;margin-bottom:10px">
+      <div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:2px;
+        font-family:'Courier New',monospace">CODE DE LA PARTIE</div>
+      <div id="lob-code-display" style="font-size:22px;letter-spacing:6px;
+        font-weight:bold;color:#FFD700;font-family:'Courier New',monospace">------</div>
+    </div>
+    <!-- Joueurs connectes -->
+    <div id="lob-players-list" style="font-size:10px;color:rgba(255,255,255,.4);
+      font-family:'Courier New',monospace;text-align:center;margin-bottom:8px"></div>
+    <!-- Choix faction -->
+    <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);
+      margin-bottom:8px;font-family:'Courier New',monospace;text-align:center">CHOISIR UN CAMP</div>
+    <div class="fg" style="justify-content:center;gap:10px;margin-bottom:10px">
+      <button class="fc" id="fc-ua" onclick="lob_selFaction('UA')" style="flex:1;max-width:170px">
+        <div class="fc-flag">&#127482;&#127462;</div>
+        <div class="fc-name">UKRAINE</div>
         <div class="fc-desc">Azov - Legion - Reg.</div>
       </button>
-      <button class="fc" id="fc-ru" onclick="v26_selFaction('RU')" style="flex:1;max-width:190px">
-        <div class="fc-flag">&#127479;&#127482;</div><div class="fc-name">RUSSIE</div>
+      <button class="fc" id="fc-ru" onclick="lob_selFaction('RU')" style="flex:1;max-width:170px">
+        <div class="fc-flag">&#127479;&#127482;</div>
+        <div class="fc-name">RUSSIE</div>
         <div class="fc-desc">Reg. - VDV - Wagner</div>
       </button>
     </div>
-    <div id="squad-section" style="display:none">
-      <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);margin-bottom:8px;font-family:'Courier New',monospace;text-align:center">ESCOUADES DISPONIBLES</div>
-      <div id="squad-list"></div>
+    <!-- Escouades -->
+    <div id="lob-squad-wrap" style="display:none">
+      <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);
+        margin-bottom:8px;font-family:'Courier New',monospace;text-align:center">CHOISIR UNE UNITE</div>
+      <div id="lob-squad-list"></div>
     </div>
+    <!-- SPAWN -->
+    <button id="btn-spawn" class="play-btn" onclick="lob_spawn()"
+      style="display:none;margin-top:8px;width:100%">SPAWN</button>
   </div>
-  <button id="btn-spawn" class="play-btn" onclick="v26_spawn()" style="display:none;margin-top:8px">SPAWN</button>
-  <div id="load-msg" style="display:none;color:#88BBFF;font-size:11px;font-family:'Courier New',monospace;margin-top:4px">Chargement 3D...</div>
+
+  <div id="load-msg" style="display:none;color:#88BBFF;font-size:11px;
+    font-family:'Courier New',monospace;margin-top:4px">Chargement 3D...</div>
   <div class="ctrl-hint" id="ctrl-hint">Chargement...</div>
   <input id="srv" type="hidden">
 </div>
+
+<!-- DASHBOARD IN-GAME (hamburger) -->
 <div id="squad-panel" style="display:none;position:fixed;inset:0;z-index:90;
   background:rgba(0,0,0,.92);flex-direction:column;align-items:center;padding:14px 12px;overflow-y:auto">
   <div style="display:flex;justify-content:space-between;width:100%;max-width:480px;margin-bottom:10px;align-items:center">
     <div style="font-size:12px;letter-spacing:3px;font-weight:bold;font-family:'Courier New',monospace;color:#fff">DASHBOARD</div>
     <div id="sp-code" style="color:#FFD700;letter-spacing:4px;font-family:'Courier New',monospace;font-size:13px">------</div>
-    <button onclick="closeSquadPanel()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'Courier New',monospace">FERMER</button>
+    <button onclick="dash_close()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'Courier New',monospace">FERMER</button>
   </div>
   <div style="display:flex;gap:8px;width:100%;max-width:480px;margin-bottom:12px">
     <div style="flex:1;background:rgba(0,60,160,.15);border:1px solid rgba(0,100,255,.22);border-radius:8px;padding:10px">
@@ -4674,23 +4703,23 @@ body.drone-active #btn-fire-l{
     </div>
   </div>
   <div id="dash-myunit" style="width:100%;max-width:480px;margin-bottom:8px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.18);border-radius:6px;padding:8px 12px;font-family:'Courier New',monospace;font-size:11px;color:#FFD700"></div>
-  <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:6px;font-family:'Courier New',monospace">CHANGER D'ESCOUADE</div>
-  <div id="sp-members" class="fg" style="gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px"></div>
+  <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:6px;font-family:'Courier New',monospace">CHANGER D'UNITE</div>
+  <div id="dash-units" class="fg" style="gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px"></div>
   <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:480px">
-    <button onclick="respawnFromPanel()" style="padding:12px;background:rgba(0,180,80,.2);border:1px solid rgba(0,200,80,.4);color:#44FF88;border-radius:8px;font-size:13px;letter-spacing:2px;cursor:pointer;font-family:'Courier New',monospace">REDEPLOYER</button>
-    <button onclick="leaveSquad()" style="padding:12px;background:rgba(200,0,0,.15);border:1px solid rgba(255,0,0,.3);color:#FF6666;border-radius:8px;font-size:13px;letter-spacing:2px;cursor:pointer;font-family:'Courier New',monospace">QUITTER LA PARTIE</button>
+    <button onclick="doRespawn()&&dash_close()||dash_close()" style="padding:12px;background:rgba(0,180,80,.2);border:1px solid rgba(0,200,80,.4);color:#44FF88;border-radius:8px;font-size:13px;letter-spacing:2px;cursor:pointer;font-family:'Courier New',monospace">REDEPLOYER</button>
+    <button onclick="lob_quit()" style="padding:12px;background:rgba(200,0,0,.15);border:1px solid rgba(255,0,0,.3);color:#FF6666;border-radius:8px;font-size:13px;letter-spacing:2px;cursor:pointer;font-family:'Courier New',monospace">QUITTER</button>
   </div>
 </div>
+
+<!-- Labels alliés -->
 <div id="player-labels" style="position:fixed;inset:0;pointer-events:none;z-index:20;overflow:hidden"></div>
+
+<!-- Minimap -->
 <div id="minimap-wrap" style="display:none;position:fixed;top:6px;left:6px;z-index:30;
-  width:120px;border-radius:8px;overflow:visible;background:transparent">
-  <!-- Minimap canvas -->
-  <div style="width:120px;height:120px;border-radius:8px;overflow:hidden;
-    border:1px solid rgba(255,255,255,.2);background:rgba(8,12,8,.9);position:relative">
-    <canvas id="minimap-cv" width="120" height="120"></canvas>
-    <div style="position:absolute;bottom:2px;right:4px;font-size:7px;
-      color:rgba(255,255,255,.3);font-family:Courier New,monospace">MAP</div>
-  </div>
+  width:120px;height:120px;border-radius:8px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.2);background:rgba(8,12,8,.9)">
+  <canvas id="minimap-cv" width="120" height="120"></canvas>
+  <div style="position:absolute;bottom:2px;right:3px;font-size:7px;color:rgba(255,255,255,.3);font-family:Courier New,monospace">MAP</div>
 </div>
 
 <canvas id="c"></canvas>
@@ -5434,7 +5463,7 @@ function initEngine(){
   try{buildProps();}catch(e){console.error('[FL22] buildProps:',e);}
   try{buildWeapon();}catch(e){console.error('[FL22] buildWeapon:',e);}
   // Spawner le drone sur la map
-  setTimeout(function(){if(typeof inRoom!=='undefined'&&inRoom){try{spawnDroneOnMap();}catch(e){console.warn('[FL22] drone:',e);}}},400);
+  setTimeout(function(){try{spawnDroneOnMap();}catch(e){console.warn('[FL22] drone:',e);}},400);
   if(isMobile)setupTouch();else setupKBM();
   window.addEventListener('resize',()=>{
     camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
@@ -8129,506 +8158,6 @@ function _drawFPVCanvas(pitch,roll,yaw,alt,spd,bat){
 <div id="btn-wpn-ig" title="Changer arme" style="user-select:none;-webkit-user-select:none;pointer-events:all !important;" ontouchend="event.stopPropagation();event.preventDefault();cycleWpnIG();" onclick="event.stopPropagation();cycleWpnIG();"><span></span><span></span><span></span></div>
 <div id="wpn-lbl" style="position:fixed;top:112px;left:10px;z-index:40;display:none;color:rgba(210,200,160,.85);font-family:'Courier New',monospace;font-size:11px;letter-spacing:.06em;background:rgba(0,0,0,.55);padding:3px 7px;border-radius:4px;pointer-events:none;"></div>
 <div id="wpn-ig-panel"></div>
-
-<script>
-/* ================================================================
-   SYSTEME DE DECOUVERTE GLOBAL - fl22_lobby_v1
-   Toutes les parties actives sont visibles et rejoignables
-   ================================================================ */
-
-var _lobChan = null;          // Canal de découverte global
-var _activeRooms = {};        // {code: {host, players, ts}}
-var _announceTimer = null;    // Heartbeat d'annonce
-
-/* Initialiser le canal de découverte (des le chargement de la page) */
-function v26_initDiscovery(){
-  if(_lobChan) return;
-  initAbly(function(){
-    _lobChan = ablyClient.channels.get('fl22_lobby_v1');
-    /* Recevoir les annonces de parties */
-    _lobChan.subscribe('room', function(msg){
-      var d = msg.data; if(!d||!d.code) return;
-      _activeRooms[d.code] = {host:d.host||'?', players:d.players||1, ts:Date.now()};
-      v26_renderRoomList();
-    });
-    /* Recevoir les fermetures de parties */
-    _lobChan.subscribe('bye', function(msg){
-      var d = msg.data; if(d&&d.code) delete _activeRooms[d.code];
-      v26_renderRoomList();
-    });
-    /* Demander les parties actives */
-    _lobChan.publish('ping', {id:myId});
-  });
-}
-
-/* Annoncer notre partie au canal global */
-function v26_announceRoom(){
-  if(!_lobChan || !roomCode) return;
-  var count = Object.keys(_v26p).length;
-  _lobChan.publish('room', {
-    code: roomCode,
-    host: myUsername || 'Soldat',
-    players: count
-  });
-}
-
-/* Rendre la liste des parties et la mettre a jour */
-function v26_renderRoomList(){
-  var el = document.getElementById('room-list'); if(!el) return;
-  /* Nettoyer les parties de +60s sans mise a jour */
-  var now = Date.now();
-  for(var k in _activeRooms){
-    if(now - _activeRooms[k].ts > 60000) delete _activeRooms[k];
-  }
-  var codes = Object.keys(_activeRooms);
-  var empty = document.getElementById('room-list-empty');
-  if(codes.length === 0){
-    if(empty) empty.style.display='block';
-    return;
-  }
-  if(empty) empty.style.display='none';
-  var html = '';
-  for(var i=0; i<codes.length; i++){
-    var code = codes[i]; var r = _activeRooms[code];
-    var isMyRoom = (code === roomCode);
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;' +
-      'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,' + (isMyRoom?'.25':'.1') + ');' +
-      'border-radius:8px;padding:8px 12px;margin-bottom:6px;">' +
-      '<div>' +
-      '<div style="font-size:12px;font-weight:bold;color:' + (isMyRoom?'#FFD700':'#fff') + ';font-family:monospace">' +
-      (r.host||'?') + (isMyRoom?' (votre partie)':'') + '</div>' +
-      '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace">' +
-      r.players + ' joueur(s) | Code: ' + code + '</div></div>' +
-      (isMyRoom ? '' :
-        '<button data-code="' + code + '" onclick="v26_joinFromList(this)"' +
-        ' style="padding:6px 14px;background:rgba(0,200,100,.2);border:1px solid rgba(0,200,100,.4);' +
-        'color:#44FF88;border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace">REJOINDRE</button>') +
-      '</div>';
-  }
-  el.innerHTML = html + (empty ? empty.outerHTML : '');
-}
-
-/* Rejoindre une partie depuis la liste */
-function v26_joinFromList(btn){
-  var code = btn.getAttribute('data-code');
-  if(!code) return;
-  var ri = document.getElementById('room-input'); if(ri) ri.value = code;
-  v26_join();
-}
-
-/* Actualiser manuellement */
-function v26_refreshRooms(){
-  if(_lobChan) _lobChan.publish('ping', {id:myId});
-  else v26_initDiscovery();
-}
-
-/* Initialiser la decouverte des que la page est prete */
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', v26_initDiscovery);
-} else {
-  setTimeout(v26_initDiscovery, 500);
-}
-
-
-/* ================================================================
-   WE22 v26 - Systeme escouades + fixes (script tag separe, zéro modif v21)
-   ================================================================ */
-
-/* ── CONFIG SOUS-FACTIONS ─────────────────────────────────────── */
-var _SFX = {
-  UA_AZOV:   {f:'UA',sf:'AZOV',   name:'AZOV',         wpn:'M16A4',tape:0x00AA00,desc:'M16A4 - Scotch vert'},
-  UA_LEGION: {f:'UA',sf:'LEGION', name:'LEGION INT.',  wpn:'SCARH', tape:0x0055FF,desc:'SCAR-H - Scotch bleu'},
-  UA_REG:    {f:'UA',sf:'REG',    name:'ARMEE REG. UA',wpn:'AK74M', tape:0xFFD700,desc:'AK-74M - Scotch jaune'},
-  RU_REG:    {f:'RU',sf:'REG',    name:'ARMEE REG. RU',wpn:'AK74M', tape:0xDDDDDD,desc:'AK-74M - Scotch blanc'},
-  RU_VDV:    {f:'RU',sf:'VDV',    name:'VDV',          wpn:'AK12',  tape:0xCCCCCC,desc:'AK-12 - Scotch blanc'},
-  RU_WAGNER: {f:'RU',sf:'WAGNER', name:'WAGNER',       wpn:'ASVAL', tape:0xFF2200,desc:'AS Val - Scotch rouge'}
-};
-var _v26p = {};
-
-/* ── FIX _doStart: initEngine TOUJOURS immediat, preview destroyed ─ */
-function _doStart(){
-  myUsername = (document.getElementById('user-name') ? document.getElementById('user-name').value : 'Soldat') || 'Soldat';
-  myUsername = myUsername.trim() || 'Soldat';
-  sfKey = faction + '_' + subfaction;
-  if(!tapeColor) tapeColor = (faction==='UA' ? 0xFFD700 : 0xCC2222);
-  else if(faction==='RU' && tapeColor===0xFFD700) tapeColor = 0xCC2222;
-
-  /* Cacher menu, montrer HUD */
-  var _menu = document.getElementById('menu'); if(_menu) _menu.style.display = 'none';
-  var _hud  = document.getElementById('hud');  if(_hud)  _hud.style.display  = 'block';
-  var _nsx  = document.getElementById('nsx');  if(_nsx)  _nsx.style.display  = 'block';
-  var _sco  = document.getElementById('score-hud'); if(_sco) _sco.style.display='block';
-  if(!isMobile){ var _clk=document.getElementById('clk'); if(_clk) _clk.style.display='block'; }
-
-  /* Position spawn */
-  var spZ = faction==='UA' ? -82 : 82;
-  var spX = (Math.random()-.5)*16;
-  pPos.set(spX, tH(spX,spZ)+2, spZ);
-  pYaw = faction==='UA' ? Math.PI : 0;
-
-  /* CRITIQUE: Detruire le renderer de preview pour eviter conflit WebGL */
-  if(typeof _pvA !== 'undefined' && _pvA){ cancelAnimationFrame(_pvA); _pvA = null; }
-  if(typeof _pvR !== 'undefined' && _pvR){
-    try{ _pvR.forceContextLoss(); _pvR.dispose(); } catch(e){}
-    _pvR = null; _pvS = null; _pvC = null;
-  }
-
-  /* CRITIQUE: initEngine TOUJOURS immediat (pas dans callback) */
-  initEngine();
-  gameOn = true;
-  updateHUD();
-  if(renderer) renderer.domElement.style.filter = '';
-  lastT = performance.now() / 1000;
-  requestAnimationFrame(loop);
-
-  /* Camera dans weaponScene - scene est créée par initEngine ci-dessus */
-  if(scene && scene.children && scene.children.includes(camera)){
-    scene.remove(camera);
-    _weaponScene.add(camera);
-  }
-  if(!isMobile){
-    setTimeout(function(){
-      var cv = document.getElementById('c');
-      if(cv) cv.requestPointerLock();
-    }, 300);
-  }
-
-  /* Minimap */
-  var _mw = document.getElementById('minimap-wrap'); if(_mw) _mw.style.display='block';
-
-  /* Charger modele soldiat en arriere-plan */
-  if(!_soldierGLTF){
-    var _lm = document.getElementById('load-msg'); if(_lm) _lm.style.display='block';
-    loadSoldierModel(function(){
-      if(_lm) _lm.style.display = 'none';
-      // buildWeapon() deja appele par initEngine() - pas besoin ici
-    });
-  }
-  setTimeout(function(){
-    var b = document.getElementById('btn-wpn-ig'); if(b) b.style.display = 'flex';
-    var wl = document.getElementById('wpn-lbl'); if(wl) wl.style.display = 'block';
-  }, 300);
-}
-
-/* ── CREATE / JOIN GAME ──────────────────────────────────────── */
-function v26_create(){
-  var uname = (document.getElementById('user-name').value||'Soldat').trim()||'Soldat';
-  myUsername = uname;
-  var btn = document.getElementById('btn-create');
-  if(btn){ btn.textContent='Connexion...'; btn.disabled=true; }
-  var ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', code='';
-  for(var i=0;i<6;i++) code += ch[Math.floor(Math.random()*ch.length)];
-  roomCode=code; inRoom=true;
-  _v26p={}; _v26p[myId]={id:myId,name:uname,sfk:''};
-  var bx=document.getElementById('g-code-box'); if(bx) bx.style.display='block';
-  var rb=document.getElementById('g-code-big'); if(rb) rb.textContent=code;
-  initAbly(function(){
-    chan = ablyClient.channels.get('fl22_'+code);
-    setupChan();
-    chan.subscribe('join', function(msg){ if(msg.data&&msg.data.id!==myId) v26_onJoin(msg.data); });
-    if(btn){ btn.textContent='PARTIE CREEE'; btn.disabled=false; }
-    var ls=document.getElementById('lobby-section'); if(ls) ls.style.display='block';
-    setSt('ok','MULTI ACTIF','#44CC88');
-    chan.publish('join',{id:myId,sfk:'',username:uname});
-    /* Annoncer la partie dans le lobby global */
-    setTimeout(function(){v26_announceRoom();},500);
-    if(_announceTimer) clearInterval(_announceTimer);
-    _announceTimer = setInterval(function(){
-      if(inRoom&&roomCode) v26_announceRoom();
-      else{clearInterval(_announceTimer);_announceTimer=null;}
-    }, 20000);
-    /* Annoncer la partie dans le lobby global */
-    v26_announceRoom();
-    /* Heartbeat: re-annoncer toutes les 20s */
-    if(_announceTimer) clearInterval(_announceTimer);
-    _announceTimer = setInterval(function(){
-      if(inRoom && roomCode) v26_announceRoom();
-      else{ clearInterval(_announceTimer); _announceTimer=null; }
-    }, 20000);
-  });
-}
-
-function v26_join(){
-  var uname = (document.getElementById('user-name').value||'Soldat').trim()||'Soldat';
-  myUsername = uname;
-  var ri = document.getElementById('room-input');
-  var code = ri ? ri.value.trim().toUpperCase() : '';
-  if(code.length<4){ alert('Code invalide'); return; }
-  var btn = document.getElementById('btn-join');
-  if(btn){ btn.textContent='Connexion...'; btn.disabled=true; }
-  roomCode=code; inRoom=true;
-  _v26p={}; _v26p[myId]={id:myId,name:uname,sfk:''};
-  var bx=document.getElementById('g-code-box'); if(bx) bx.style.display='block';
-  var rb=document.getElementById('g-code-big'); if(rb) rb.textContent=code;
-  initAbly(function(){
-    chan = ablyClient.channels.get('fl22_'+code);
-    setupChan();
-    chan.subscribe('join', function(msg){ if(msg.data&&msg.data.id!==myId) v26_onJoin(msg.data); });
-    if(btn){ btn.textContent='REJOINT'; btn.disabled=false; }
-    var ls=document.getElementById('lobby-section'); if(ls) ls.style.display='block';
-    setSt('ok','MULTI ACTIF','#44CC88');
-    chan.publish('join',{id:myId,sfk:'',username:uname});
-    /* Annoncer la partie dans le lobby global */
-    v26_announceRoom();
-    /* Mettre a jour la liste */
-    v26_renderRoomList();
-  });
-}
-
-function v26_copyCode(){
-  var code = roomCode||'------';
-  if(navigator.clipboard) navigator.clipboard.writeText(code);
-  else prompt('Code:',code);
-}
-
-/* ── LOBBY ────────────────────────────────────────────────────── */
-function v26_selFaction(fac){
-  faction=fac; subfaction='REG'; sfKey=fac+'_REG';
-  tapeColor=(fac==='UA')?0x005BBB:0xCC2222;
-  weapon=(fac==='UA'?WEAPONS_UA:WEAPONS_RU)[0].id;
-  var ua=document.getElementById('fc-ua'); if(ua) ua.classList.remove('sel-ua','sel-ru');
-  var ru=document.getElementById('fc-ru'); if(ru) ru.classList.remove('sel-ua','sel-ru');
-  var fb=document.getElementById('fc-'+fac.toLowerCase()); if(fb) fb.classList.add('sel-'+fac.toLowerCase());
-  var ss=document.getElementById('squad-section'); if(ss) ss.style.display='block';
-  v26_renderSquads(fac);
-  var bs=document.getElementById('btn-spawn'); if(bs) bs.style.display='none';
-}
-
-function v26_renderSquads(fac){
-  var keys=Object.keys(_SFX).filter(function(k){return _SFX[k].f===fac;});
-  var html='';
-  for(var ki=0;ki<keys.length;ki++){
-    var k=keys[ki]; var sf=_SFX[k];
-    var members=[];
-    for(var pid in _v26p){ if(_v26p[pid].sfk===k) members.push(_v26p[pid].name||'?'); }
-    for(var rid in remotes){ if((remotes[rid].sfk||'')===k) members.push(remotes[rid].username||'?'); }
-    var isMe=(sfKey===k);
-    var mStr=members.length>0?' ('+members.join(', ')+')':'';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;' +
-      'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,'+(isMe?'.25':'.08')+');' +
-      'border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
-      '<div><div style="font-size:12px;font-weight:bold;color:'+(isMe?'#FFD700':'#fff')+';font-family:monospace">'+sf.name+'</div>' +
-      '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace">'+sf.desc+mStr+'</div></div>' +
-      '<button data-sfk="'+k+'" onclick="v26_joinSF(this)"' +
-      ' style="padding:6px 14px;background:'+(isMe?'rgba(255,215,0,.2)':'rgba(255,255,255,.1)')+';' +
-      'border:1px solid '+(isMe?'rgba(255,215,0,.5)':'rgba(255,255,255,.2)')+';' +
-      'color:'+(isMe?'#FFD700':'#fff')+';border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace">' +
-      (isMe?'SELECTIONNE':'REJOINDRE')+'</button></div>';
-  }
-  var sl=document.getElementById('squad-list'); if(sl) sl.innerHTML=html;
-}
-
-function v26_joinSF(btn){
-  var k=btn.getAttribute('data-sfk'); if(!k||!_SFX[k]) return;
-  var sf=_SFX[k];
-  faction=sf.f; subfaction=sf.sf; sfKey=k; weapon=sf.wpn; tapeColor=sf.tape;
-  if(_v26p[myId]) _v26p[myId].sfk=k;
-  if(chan) chan.publish('join',{id:myId,sfk:k,username:myUsername});
-  v26_renderSquads(sf.f);
-  var bs=document.getElementById('btn-spawn'); if(bs) bs.style.display='block';
-  v26_announceRoom();
-}
-
-var _v26_spawned = false;
-function v26_spawn(){
-  if(_v26_spawned){ return; } // Eviter double spawn (double tap)
-  try{
-    if(!sfKey||!faction){ alert('Choisissez une escouade'); return; }
-    _v26_spawned = true;
-    // S'assurer que les variables sont bien definies
-    if(typeof faction==='undefined'||!faction){ faction='UA'; }
-    if(typeof subfaction==='undefined'||!subfaction){ subfaction='REG'; }
-    if(typeof sfKey==='undefined'||!sfKey){ sfKey=faction+'_'+subfaction; }
-    if(typeof weapon==='undefined'||!weapon){ weapon=(faction==='UA'?WEAPONS_UA:WEAPONS_RU)[0].id; }
-    if(typeof tapeColor==='undefined'||!tapeColor){ tapeColor=(faction==='UA'?0xFFD700:0xCC2222); }
-    // selF maintenant overridden - juste verifier les variables
-    sfKey = faction + '_' + subfaction;
-    startGame();
-  } catch(e){
-    alert('Erreur spawn: '+e.message);
-    console.error('[v26_spawn]', e);
-  }
-}
-
-function v26_updateLobby(){
-  var list=Object.values(_v26p);
-  /* Compter AUSSI les remotes (joueurs en jeu) */
-  var remoteCount = typeof remotes !== 'undefined' ? Object.keys(remotes).length : 0;
-  var totalCount = Math.max(list.length, 1 + remoteCount);
-  var lc=document.getElementById('lob-count');
-  if(lc) lc.textContent=totalCount+' joueur(s) connecte(s)';
-  var html='';
-  for(var i=0;i<list.length;i++){
-    var p=list[i]; var sf=_SFX[p.sfk||''];
-    html+='<span style="margin-right:8px;font-size:10px">'+(sf?'['+sf.name+'] ':'')+p.name+'</span>';
-  }
-  for(var rid in remotes){
-    var r=remotes[rid]; var rsf=_SFX[r.sfk||''];
-    html+='<span style="margin-right:8px;font-size:10px">'+(rsf?'['+rsf.name+'] ':'')+( r.username||'?')+'</span>';
-  }
-  var lp=document.getElementById('lob-players'); if(lp) lp.innerHTML=html;
-  if(faction) v26_renderSquads(faction);
-}
-
-/* ── DASHBOARD (hamburger) ────────────────────────────────────── */
-function openSquadPanel(){
-  var dp=document.getElementById('squad-panel'); if(dp) dp.style.display='flex';
-  var sc=document.getElementById('sp-code'); if(sc) sc.textContent=roomCode||'------';
-  v26_updateDash();
-  var myU=_SFX[sfKey];
-  var du=document.getElementById('dash-myunit');
-  if(du) du.textContent='Votre unite: '+(myU?myU.name+' | '+myU.desc:'?');
-  var keys=Object.keys(_SFX).filter(function(k){return _SFX[k].f===faction;});
-  var html='';
-  for(var ki=0;ki<keys.length;ki++){
-    var k=keys[ki]; var sf=_SFX[k];
-    var sel=(k===sfKey)?' sel-'+faction.toLowerCase():'';
-    html+='<button class="fc'+sel+'" data-sfk="'+k+'" onclick="v26_dashChg(this)"' +
-      ' style="min-width:90px;padding:7px 4px">' +
-      '<div style="font-size:9px;font-weight:bold">'+sf.name+'</div>' +
-      '<div style="font-size:8px;color:rgba(255,255,255,.4)">'+sf.wpn+'</div></button>';
-  }
-  var sm=document.getElementById('sp-members'); if(sm) sm.innerHTML=html;
-}
-
-function closeSquadPanel(){ var dp=document.getElementById('squad-panel'); if(dp) dp.style.display='none'; }
-function respawnFromPanel(){ closeSquadPanel(); doRespawn(); }
-
-function v26_dashChg(btn){
-  var k=btn.getAttribute('data-sfk'); if(!k||!_SFX[k]) return;
-  var sf=_SFX[k]; subfaction=sf.sf; sfKey=k; weapon=sf.wpn; tapeColor=sf.tape;
-  if(chan) chan.publish('join',{id:myId,sfk:k,username:myUsername});
-  if(wpGroup){_weaponScene.remove(wpGroup);wpGroup=null;}
-  buildWeapon(); closeSquadPanel();
-}
-
-function leaveSquad(){
-  if(chan){ try{chan.publish('bye',{id:myId});}catch(e){} chan.unsubscribe(); }
-  if(_lobChan&&roomCode){try{_lobChan.publish('bye',{code:roomCode});}catch(e){}}
-  if(_announceTimer){clearInterval(_announceTimer);_announceTimer=null;}
-  chan=null; roomCode=null; inRoom=false; _v26p={};
-  closeSquadPanel();
-  var pl=document.getElementById('player-labels'); if(pl) pl.innerHTML='';
-  var mw=document.getElementById('minimap-wrap'); if(mw) mw.style.display='none';
-  gameOn=false;
-  var hud=document.getElementById('hud'); if(hud) hud.style.display='none';
-  var scu=document.getElementById('score-hud'); if(scu) scu.style.display='none';
-  if(renderer) renderer.domElement.style.display='none';
-  var menu=document.getElementById('menu'); if(menu) menu.style.display='flex';
-  var bc=document.getElementById('btn-create'); if(bc){bc.textContent='CREER UNE PARTIE';bc.disabled=false;}
-  var bj=document.getElementById('btn-join'); if(bj){bj.textContent='REJOINDRE';bj.disabled=false;}
-  var bx=document.getElementById('g-code-box'); if(bx) bx.style.display='none';
-  var ls=document.getElementById('lobby-section'); if(ls) ls.style.display='none';
-  var ss=document.getElementById('squad-section'); if(ss) ss.style.display='none';
-  var bsp=document.getElementById('btn-spawn'); if(bsp) bsp.style.display='none';
-}
-
-function v26_updateDash(){
-  var uaH='', ruH='';
-  var myN=myUsername||'Soldat'; var mySF=_SFX[sfKey];
-  if(faction==='UA') uaH+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
-  else ruH+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
-  for(var id in remotes){
-    var r=remotes[id]; var nm=r.username||'?'; var rk=r.sfk||''; var rsf=_SFX[rk];
-    var entry='<div>'+nm+(rsf?' - '+rsf.name:'')+'</div>';
-    if(rk.indexOf('UA')===0) uaH+=entry; else ruH+=entry;
-  }
-  var ph='<div style="opacity:.3;font-size:10px">-</div>';
-  var eu=document.getElementById('dash-ua'); if(eu) eu.innerHTML=uaH||ph;
-  var er=document.getElementById('dash-ru'); if(er) er.innerHTML=ruH||ph;
-}
-
-/* ── HOOKS ABLY ────────────────────────────────────────────────── */
-function v26_onJoin(d){
-  if(!d||!d.id) return;
-  _v26p[d.id]={id:d.id,name:d.username||'Joueur',sfk:d.sfk||''};
-  if(remotes[d.id]){ remotes[d.id].username=d.username; if(d.sfk) remotes[d.id].sfk=d.sfk; }
-  v26_updateLobby(); v26_updateDash();
-  v26_announceRoom(); // Mettre a jour le count de joueurs
-}
-
-/* ── MINIMAP ───────────────────────────────────────────────────── */
-var _mmC=null, _mmX=null;
-var _MMB=[[-55,-52,28,12],[0,-52,28,12],[55,-52,28,12],
-  [-55,52,28,12],[0,52,28,12],[55,52,28,12],
-  [-24,-24,28,12],[24,-24,28,12],[-24,24,28,12],[24,24,28,12],
-  [-28,-12,7,4],[28,-12,7,4],[-28,12,7,4],[28,12,7,4],[-78,0,7,4],[78,0,7,4]];
-function v26_minimap(){
-  if(!gameOn||typeof pPos==='undefined') return;
-  if(!_mmC){_mmC=document.getElementById('minimap-cv'); if(!_mmC) return; _mmX=_mmC.getContext('2d');}
-  var W=120, sc=W/200, ctx=_mmX;
-  ctx.clearRect(0,0,W,W); ctx.fillStyle='rgba(8,14,8,.95)'; ctx.fillRect(0,0,W,W);
-  ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.lineWidth=0.5;
-  for(var g=0;g<=W;g+=13){ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,g);ctx.lineTo(W,g);ctx.stroke();}
-  ctx.fillStyle='rgba(140,130,110,.5)';
-  for(var b=0;b<_MMB.length;b++){var bl=_MMB[b];ctx.fillRect((bl[0]+100)*sc-bl[2]*sc/2,(bl[1]+100)*sc-bl[3]*sc/2,bl[2]*sc,bl[3]*sc);}
-  for(var rid in remotes){var rm=remotes[rid]; if(!rm.mesh||!rm.visible) continue;
-    ctx.fillStyle=(rm.sfk&&rm.sfk.indexOf(faction.substring(0,2))===0)?'rgba(68,255,136,.9)':'rgba(255,60,60,.9)';
-    ctx.beginPath(); ctx.arc((rm.mesh.position.x+100)*sc,(rm.mesh.position.z+100)*sc,3,0,Math.PI*2); ctx.fill();}
-  var px=(pPos.x+100)*sc, pz=(pPos.z+100)*sc;
-  ctx.save(); ctx.translate(px,pz); ctx.rotate(pYaw);
-  ctx.fillStyle='rgba(80,160,255,1)'; ctx.beginPath(); ctx.moveTo(0,-6); ctx.lineTo(-4,4); ctx.lineTo(0,2); ctx.lineTo(4,4); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle='rgba(200,230,255,.8)'; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
-  ctx.strokeStyle='rgba(80,180,80,.3)'; ctx.lineWidth=1; ctx.strokeRect(0.5,0.5,W-1,W-1);
-}
-
-/* ── LABELS ALLIES ────────────────────────────────────────────── */
-var _lblC=null;
-function v26_labels(){
-  if(!gameOn||!camera||!renderer) return;
-  if(!_lblC) _lblC=document.getElementById('player-labels');
-  var W=renderer.domElement.clientWidth||innerWidth, H=renderer.domElement.clientHeight||innerHeight;
-  var vv=new THREE.Vector3();
-  for(var lid in remotes){
-    var r=remotes[lid];
-    var ally=r.sfk&&r.sfk.indexOf(faction.substring(0,2))===0;
-    if(!ally||!r.mesh||!r.visible||r._ragdolling){
-      var e2=document.getElementById('lbl_'+lid); if(e2) e2.style.display='none'; continue;
-    }
-    var el=document.getElementById('lbl_'+lid);
-    if(!el){el=document.createElement('div'); el.id='lbl_'+lid;
-      el.style.cssText='position:absolute;transform:translateX(-50%);pointer-events:none;'+
-        'font-family:monospace;font-size:11px;font-weight:bold;color:#44FF88;'+
-        'text-shadow:0 0 5px rgba(0,255,80,.7);background:rgba(0,0,0,.45);padding:2px 6px;'+
-        'border-radius:4px;letter-spacing:1px;white-space:nowrap;display:none';
-      if(_lblC) _lblC.appendChild(el);}
-    el.textContent=r.username||'?';
-    r.mesh.getWorldPosition(vv); vv.y+=2.9; vv.project(camera);
-    if(vv.z>1){el.style.display='none'; continue;}
-    el.style.left=(((vv.x+1)/2)*W)+'px'; el.style.top=(((-vv.y+1)/2)*H)+'px'; el.style.display='block';
-  }
-}
-
-/* ── PATCH RENDER LOOP: minimap + labels + hamburger ──────────── */
-var _v26_orig_loop = loop;
-loop = function(ts){
-  _v26_orig_loop(ts);
-  if(gameOn){
-    v26_minimap();
-    v26_labels();
-  }
-};
-
-/* Hamburger -> openSquadPanel */
-var _v26_orig_cycleWpnIG = typeof cycleWpnIG !== 'undefined' ? cycleWpnIG : null;
-function cycleWpnIG(){ openSquadPanel(); }
-
-/* Override selF + selSide: versions v21 cherchent elements supprimes -> crash */
-function selF(f,sf){
-  faction=f; subfaction=sf; sfKey=f+'_'+sf;
-}
-function selSide(side){ v26_selFaction(side); }
-
-/* Compat aliases */
-function createRoom(){ v26_create(); }
-function joinRoom(){ v26_join(); }
-function copyRoomLink(){ v26_copyCode(); }
-function showRoomStatus(code){ var rb=document.getElementById('g-code-big');if(rb)rb.textContent=code; }
-function deployGame(){ v26_spawn(); }
-function backToPhase1(){}
-function goPhase2(){}
-function changeWeaponAndClose(id){ v26_dashChg({getAttribute:function(){return id;}}); }
-</script>
 </body>
 </html>
 function buildDrone(){
@@ -8712,3 +8241,444 @@ function buildDrone(){
 }
 
 
+
+<script>
+/* ================================================================
+   WE22 v27 — Server Browser + Subfactions + Fixes
+   Script tag séparé: zéro modification du gameplay v21
+   ================================================================ */
+
+// ── CONFIG SOUS-FACTIONS ─────────────────────────────────────────
+var _SF = {
+  UA_AZOV:   {f:'UA',sf:'AZOV',   name:'AZOV',         wpn:'M16A4',tape:0x00AA00,desc:'M16A4 | Scotch vert'},
+  UA_LEGION: {f:'UA',sf:'LEGION', name:'LEGION INT.',  wpn:'SCARH', tape:0x0055FF,desc:'SCAR-H | Scotch bleu'},
+  UA_REG:    {f:'UA',sf:'REG',    name:'ARMEE REG. UA',wpn:'AK74M', tape:0xFFD700,desc:'AK-74M | Scotch jaune'},
+  RU_REG:    {f:'RU',sf:'REG',    name:'ARMEE REG. RU',wpn:'AK74M', tape:0xDDDDDD,desc:'AK-74M | Scotch blanc'},
+  RU_VDV:    {f:'RU',sf:'VDV',    name:'VDV',          wpn:'AK12',  tape:0xCCCCCC,desc:'AK-12  | Scotch blanc'},
+  RU_WAGNER: {f:'RU',sf:'WAGNER', name:'WAGNER',       wpn:'ASVAL', tape:0xFF2200,desc:'AS Val | Scotch rouge'}
+};
+var _lob_players = {};  // {id: {name, sfk}}
+var _spawned = false;
+
+// ── SERVER BROWSER ────────────────────────────────────────────────
+var _srvChan = null;
+var _servers = {};      // {code: {host, players, ts}}
+var _srvTimer = null;
+
+function srv_start(){
+  // Se connecter au canal global de découverte
+  initAbly(function(){
+    if(_srvChan) return;
+    _srvChan = ablyClient.channels.get('fl22_servers_v2');
+    _srvChan.subscribe('announce', function(msg){
+      var d=msg.data; if(!d||!d.code) return;
+      _servers[d.code]={host:d.host||'?',players:d.players||1,faction:d.faction||'',ts:Date.now()};
+      srv_render();
+    });
+    _srvChan.subscribe('close', function(msg){
+      if(msg.data&&msg.data.code) delete _servers[msg.data.code];
+      srv_render();
+    });
+    // Demander la liste actuelle
+    _srvChan.publish('ping',{id:myId});
+    srv_render();
+  });
+}
+
+function srv_announce(){
+  if(!_srvChan||!roomCode) return;
+  var count=1+Object.keys(remotes||{}).length;
+  _srvChan.publish('announce',{code:roomCode,host:myUsername||'Soldat',players:count});
+}
+
+function srv_render(){
+  var el=document.getElementById('srv-list'); if(!el) return;
+  var empty=document.getElementById('srv-empty');
+  var now=Date.now();
+  // Nettoyer les serveurs inactifs (> 45s)
+  for(var k in _servers) if(now-_servers[k].ts>45000) delete _servers[k];
+  var keys=Object.keys(_servers).filter(function(k){return k!==roomCode;});
+  if(keys.length===0){
+    if(empty) empty.style.display='block';
+    el.innerHTML='';
+    el.appendChild(empty||document.createElement('div'));
+    if(empty) empty.textContent='Aucune partie active...';
+    return;
+  }
+  if(empty) empty.style.display='none';
+  var html='';
+  for(var i=0;i<keys.length;i++){
+    var code=keys[i]; var r=_servers[code];
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;'+
+      'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);'+
+      'border-radius:8px;padding:10px 12px;margin-bottom:6px">'+
+      '<div>'+
+        '<div style="font-size:13px;font-weight:bold;color:#fff;font-family:monospace">'+
+          (r.host||'Soldat')+'</div>'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace">'+
+          r.players+' joueur(s)</div>'+
+      '</div>'+
+      '<button data-code="'+code+'" onclick="srv_joinGame(this)"'+
+        ' style="padding:8px 16px;background:rgba(0,200,100,.2);'+
+        'border:1px solid rgba(0,200,100,.4);color:#44FF88;border-radius:6px;'+
+        'cursor:pointer;font-size:12px;font-family:monospace;letter-spacing:1px">'+
+        'JOINDRE</button>'+
+    '</div>';
+  }
+  el.innerHTML=html;
+}
+
+function srv_refresh(){
+  srv_render();
+  if(_srvChan) _srvChan.publish('ping',{id:myId});
+  else srv_start();
+}
+
+function srv_joinGame(btn){
+  var code=btn.getAttribute('data-code'); if(!code) return;
+  document.getElementById('room-input').value=code;
+  srv_joinByCode();
+}
+
+// ── CREER / REJOINDRE ────────────────────────────────────────────
+function srv_create(){
+  var uname=(document.getElementById('user-name').value||'Soldat').trim()||'Soldat';
+  myUsername=uname;
+  var btn=document.getElementById('btn-create');
+  if(btn){btn.textContent='Connexion...';btn.disabled=true;}
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', code='';
+  for(var i=0;i<6;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  roomCode=code; inRoom=true; _spawned=false;
+  _lob_players={}; _lob_players[myId]={id:myId,name:uname,sfk:''};
+  initAbly(function(){
+    // Canal global de découverte
+    if(!_srvChan){_srvChan=ablyClient.channels.get('fl22_servers_v2');
+      _srvChan.subscribe('announce',function(msg){var d=msg.data;if(!d||!d.code)return;
+        _servers[d.code]={host:d.host||'?',players:d.players||1,ts:Date.now()};srv_render();});
+      _srvChan.subscribe('close',function(msg){if(msg.data&&msg.data.code)delete _servers[msg.data.code];srv_render();});
+    }
+    // Canal de la partie
+    chan=ablyClient.channels.get('fl22_'+code);
+    setupChan();
+    // Hooks additionnels
+    chan.subscribe('join',function(msg){if(msg.data&&msg.data.id!==myId)lob_onJoin(msg.data);});
+    if(btn){btn.textContent='PARTIE CREEE';btn.disabled=false;}
+    // Afficher le lobby
+    lob_show(code, uname);
+    chan.publish('join',{id:myId,sfk:'',username:uname});
+    // Annoncer la partie
+    setTimeout(srv_announce,800);
+    if(_srvTimer) clearInterval(_srvTimer);
+    _srvTimer=setInterval(function(){if(inRoom)srv_announce();else{clearInterval(_srvTimer);_srvTimer=null;}},15000);
+  });
+}
+
+function srv_joinByCode(){
+  var uname=(document.getElementById('user-name').value||'Soldat').trim()||'Soldat';
+  myUsername=uname;
+  var ri=document.getElementById('room-input');
+  var code=ri?ri.value.trim().toUpperCase():'';
+  if(code.length<4){alert('Code invalide');return;}
+  var btn=document.getElementById('btn-join');
+  if(btn){btn.textContent='Connexion...';btn.disabled=true;}
+  roomCode=code; inRoom=true; _spawned=false;
+  _lob_players={}; _lob_players[myId]={id:myId,name:uname,sfk:''};
+  initAbly(function(){
+    if(!_srvChan){_srvChan=ablyClient.channels.get('fl22_servers_v2');
+      _srvChan.subscribe('announce',function(msg){var d=msg.data;if(!d||!d.code)return;
+        _servers[d.code]={host:d.host||'?',players:d.players||1,ts:Date.now()};srv_render();});
+      _srvChan.subscribe('close',function(msg){if(msg.data&&msg.data.code)delete _servers[msg.data.code];srv_render();});
+    }
+    chan=ablyClient.channels.get('fl22_'+code);
+    setupChan();
+    chan.subscribe('join',function(msg){if(msg.data&&msg.data.id!==myId)lob_onJoin(msg.data);});
+    if(btn){btn.textContent='REJOINT';btn.disabled=false;}
+    lob_show(code, uname);
+    chan.publish('join',{id:myId,sfk:'',username:uname});
+    srv_announce();
+  });
+}
+
+// Compat aliases v21
+function createRoom(){srv_create();}
+function joinRoom(){srv_joinByCode();}
+
+// ── LOBBY IN-MENU ────────────────────────────────────────────────
+function lob_show(code, uname){
+  var lm=document.getElementById('lobby-in-menu'); if(lm) lm.style.display='block';
+  var cd=document.getElementById('lob-code-display'); if(cd) cd.textContent=code;
+  var sc=document.getElementById('sp-code'); if(sc) sc.textContent=code;
+  lob_updatePlayers();
+}
+
+function lob_selFaction(fac){
+  faction=fac; subfaction='REG'; sfKey=fac+'_REG';
+  tapeColor=(fac==='UA')?0x005BBB:0xCC2222;
+  weapon=(fac==='UA'?WEAPONS_UA:WEAPONS_RU)[0].id;
+  var ua=document.getElementById('fc-ua'); if(ua) ua.classList.remove('sel-ua','sel-ru');
+  var ru=document.getElementById('fc-ru'); if(ru) ru.classList.remove('sel-ua','sel-ru');
+  var fb=document.getElementById('fc-'+fac.toLowerCase()); if(fb) fb.classList.add('sel-'+fac.toLowerCase());
+  var sw=document.getElementById('lob-squad-wrap'); if(sw) sw.style.display='block';
+  lob_renderSquads(fac);
+  var bs=document.getElementById('btn-spawn'); if(bs) bs.style.display='none';
+  if(chan) chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+  if(_lob_players[myId]) _lob_players[myId].sfk=sfKey;
+  lob_updatePlayers();
+}
+
+function lob_renderSquads(fac){
+  var keys=Object.keys(_SF).filter(function(k){return _SF[k].f===fac;});
+  var html='';
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i]; var sf=_SF[k];
+    var members=[]; var isMe=(sfKey===k);
+    for(var pid in _lob_players) if(_lob_players[pid].sfk===k) members.push(_lob_players[pid].name||'?');
+    for(var rid in remotes) if((remotes[rid].sfk||'')===k) members.push(remotes[rid].username||'?');
+    var mStr=members.length?' ('+members.join(', ')+')':'';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;'+
+      'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,'+(isMe?'.3':'.08')+');'+
+      'border-radius:8px;padding:9px 12px;margin-bottom:7px">'+
+      '<div>'+
+        '<div style="font-size:12px;font-weight:bold;color:'+(isMe?'#FFD700':'#fff')+';font-family:monospace">'+sf.name+'</div>'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace">'+sf.desc+mStr+'</div>'+
+      '</div>'+
+      '<button data-sfk="'+k+'" onclick="lob_joinUnit(this)"'+
+        ' style="padding:6px 13px;background:'+(isMe?'rgba(255,215,0,.2)':'rgba(255,255,255,.1)')+';'+
+        'border:1px solid '+(isMe?'rgba(255,215,0,.5)':'rgba(255,255,255,.2)')+';'+
+        'color:'+(isMe?'#FFD700':'#fff')+';border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace">'+
+        (isMe?'SELECTIONNE':'REJOINDRE')+'</button></div>';
+  }
+  var sl=document.getElementById('lob-squad-list'); if(sl) sl.innerHTML=html;
+}
+
+function lob_joinUnit(btn){
+  var k=btn.getAttribute('data-sfk'); if(!k||!_SF[k]) return;
+  var sf=_SF[k];
+  faction=sf.f; subfaction=sf.sf; sfKey=k; weapon=sf.wpn; tapeColor=sf.tape;
+  if(_lob_players[myId]) _lob_players[myId].sfk=k;
+  if(chan) chan.publish('join',{id:myId,sfk:k,username:myUsername});
+  lob_renderSquads(sf.f);
+  var bs=document.getElementById('btn-spawn'); if(bs) bs.style.display='block';
+  srv_announce();
+}
+
+function lob_updatePlayers(){
+  var count=Object.keys(_lob_players).length+Object.keys(remotes||{}).length;
+  var html='';
+  for(var id in _lob_players){var p=_lob_players[id];var sf=_SF[p.sfk||''];html+=(sf?'['+sf.name+'] ':'')+p.name+(id===myId?' (moi)':'')+' &nbsp;';}
+  for(var rid in remotes){var r=remotes[rid];var rsf=_SF[r.sfk||''];html+=(rsf?'['+rsf.name+'] ':'')+(r.username||'?')+' &nbsp;';}
+  var lp=document.getElementById('lob-players-list'); if(lp) lp.innerHTML=(html||'En attente...');
+  if(faction) lob_renderSquads(faction);
+  srv_announce();
+}
+
+function lob_onJoin(d){
+  if(!d||!d.id) return;
+  _lob_players[d.id]={id:d.id,name:d.username||'Joueur',sfk:d.sfk||''};
+  if(remotes[d.id]){remotes[d.id].username=d.username;if(d.sfk)remotes[d.id].sfk=d.sfk;}
+  lob_updatePlayers();
+  dash_update();
+}
+
+function lob_spawn(){
+  if(_spawned) return;
+  if(!sfKey||!faction){alert('Choisissez une unite');return;}
+  _spawned=true;
+  startGame();
+}
+
+function lob_quit(){
+  if(_srvChan&&roomCode){try{_srvChan.publish('close',{code:roomCode});}catch(e){}}
+  if(_srvTimer){clearInterval(_srvTimer);_srvTimer=null;}
+  if(chan){try{chan.publish('bye',{id:myId});}catch(e){}chan.unsubscribe();}
+  chan=null;roomCode=null;inRoom=false;_spawned=false;_lob_players={};
+  dash_close();
+  var pl=document.getElementById('player-labels');if(pl)pl.innerHTML='';
+  var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='none';
+  gameOn=false;
+  var hud=document.getElementById('hud');if(hud)hud.style.display='none';
+  var sc2=document.getElementById('score-hud');if(sc2)sc2.style.display='none';
+  if(renderer)renderer.domElement.style.display='none';
+  var menu=document.getElementById('menu');if(menu)menu.style.display='flex';
+  var bc=document.getElementById('btn-create');if(bc){bc.textContent='CREER UNE PARTIE';bc.disabled=false;}
+  var bj=document.getElementById('btn-join');if(bj){bj.textContent='REJOINDRE';bj.disabled=false;}
+  var lm=document.getElementById('lobby-in-menu');if(lm)lm.style.display='none';
+  var sw=document.getElementById('lob-squad-wrap');if(sw)sw.style.display='none';
+  var bs=document.getElementById('btn-spawn');if(bs)bs.style.display='none';
+  srv_render();
+}
+
+// ── DASHBOARD (hamburger in-game) ────────────────────────────────
+function openSquadPanel(){
+  var dp=document.getElementById('squad-panel');if(dp)dp.style.display='flex';
+  dash_update();
+  dash_buildUnits();
+}
+function dash_close(){var dp=document.getElementById('squad-panel');if(dp)dp.style.display='none';}
+
+function dash_update(){
+  var uaH='',ruH='';
+  var myN=myUsername||'Soldat'; var mySF=_SF[sfKey];
+  if(faction==='UA')uaH+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
+  else ruH+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
+  for(var id in remotes){var r=remotes[id];var nm=r.username||'?';var rk=r.sfk||'';var rsf=_SF[rk];
+    var e='<div>'+nm+(rsf?' - '+rsf.name:'')+'</div>';
+    if(rk.indexOf('UA')===0)uaH+=e;else ruH+=e;}
+  var ph='<div style="opacity:.3;font-size:10px">-</div>';
+  var eu=document.getElementById('dash-ua');if(eu)eu.innerHTML=uaH||ph;
+  var er=document.getElementById('dash-ru');if(er)er.innerHTML=ruH||ph;
+  var sc=document.getElementById('sp-code');if(sc)sc.textContent=roomCode||'------';
+  var myU=_SF[sfKey];var du=document.getElementById('dash-myunit');
+  if(du)du.textContent='Votre unite: '+(myU?myU.name+' | '+myU.desc:'?');
+}
+
+function dash_buildUnits(){
+  var keys=Object.keys(_SF).filter(function(k){return _SF[k].f===faction;});
+  var html='';
+  for(var i=0;i<keys.length;i++){var k=keys[i];var sf=_SF[k];var sel=(k===sfKey)?' sel-'+faction.toLowerCase():'';
+    html+='<button class="fc'+sel+'" data-sfk="'+k+'" onclick="dash_chgUnit(this)" style="min-width:90px;padding:7px 4px">'+
+      '<div style="font-size:9px;font-weight:bold">'+sf.name+'</div>'+
+      '<div style="font-size:8px;color:rgba(255,255,255,.4)">'+sf.wpn+'</div></button>';}
+  var dm=document.getElementById('dash-units');if(dm)dm.innerHTML=html;
+}
+
+function dash_chgUnit(btn){
+  var k=btn.getAttribute('data-sfk');if(!k||!_SF[k])return;
+  var sf=_SF[k];subfaction=sf.sf;sfKey=k;weapon=sf.wpn;tapeColor=sf.tape;
+  if(chan)chan.publish('join',{id:myId,sfk:k,username:myUsername});
+  if(wpGroup){_weaponScene.remove(wpGroup);wpGroup=null;}
+  buildWeapon();dash_close();
+}
+
+// ── MINIMAP ──────────────────────────────────────────────────────
+var _mmC=null,_mmX=null;
+var _MMB=[[-55,-52,28,12],[0,-52,28,12],[55,-52,28,12],
+  [-55,52,28,12],[0,52,28,12],[55,52,28,12],
+  [-24,-24,28,12],[24,-24,28,12],[-24,24,28,12],[24,24,28,12],
+  [-28,-12,7,4],[28,-12,7,4],[-28,12,7,4],[28,12,7,4],[-78,0,7,4],[78,0,7,4]];
+function v27_minimap(){
+  if(!gameOn||typeof pPos==='undefined')return;
+  if(!_mmC){_mmC=document.getElementById('minimap-cv');if(!_mmC)return;_mmX=_mmC.getContext('2d');}
+  var W=120,sc=W/200,ctx=_mmX;
+  ctx.clearRect(0,0,W,W);ctx.fillStyle='rgba(8,14,8,.95)';ctx.fillRect(0,0,W,W);
+  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=0.5;
+  for(var g=0;g<=W;g+=12){ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,g);ctx.lineTo(W,g);ctx.stroke();}
+  ctx.fillStyle='rgba(140,130,110,.5)';
+  for(var b=0;b<_MMB.length;b++){var bl=_MMB[b];ctx.fillRect((bl[0]+100)*sc-bl[2]*sc/2,(bl[1]+100)*sc-bl[3]*sc/2,bl[2]*sc,bl[3]*sc);}
+  for(var rid in remotes){var rm=remotes[rid];if(!rm.mesh||!rm.visible)continue;
+    ctx.fillStyle=(rm.sfk&&rm.sfk.indexOf(faction.substring(0,2))===0)?'rgba(68,255,136,.9)':'rgba(255,60,60,.9)';
+    ctx.beginPath();ctx.arc((rm.mesh.position.x+100)*sc,(rm.mesh.position.z+100)*sc,3,0,Math.PI*2);ctx.fill();}
+  var px=(pPos.x+100)*sc,pz=(pPos.z+100)*sc;
+  ctx.save();ctx.translate(px,pz);ctx.rotate(pYaw);
+  ctx.fillStyle='rgba(80,160,255,1)';ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(-3,3);ctx.lineTo(0,1);ctx.lineTo(3,3);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(200,230,255,.8)';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+  ctx.strokeStyle='rgba(80,180,80,.3)';ctx.lineWidth=1;ctx.strokeRect(0.5,0.5,W-1,W-1);
+}
+
+// ── LABELS ALLIES ────────────────────────────────────────────────
+var _lblC=null;
+function v27_labels(){
+  if(!gameOn||!camera||!renderer)return;
+  if(!_lblC)_lblC=document.getElementById('player-labels');
+  var W=renderer.domElement.clientWidth||innerWidth,H=renderer.domElement.clientHeight||innerHeight;
+  var vv=new THREE.Vector3();
+  for(var lid in remotes){
+    var r=remotes[lid];var ally=r.sfk&&r.sfk.indexOf(faction.substring(0,2))===0;
+    if(!ally||!r.mesh||!r.visible||r._ragdolling){var e2=document.getElementById('lbl_'+lid);if(e2)e2.style.display='none';continue;}
+    var el=document.getElementById('lbl_'+lid);
+    if(!el){el=document.createElement('div');el.id='lbl_'+lid;
+      el.style.cssText='position:absolute;transform:translateX(-50%);pointer-events:none;font-family:monospace;font-size:11px;font-weight:bold;color:#44FF88;text-shadow:0 0 5px rgba(0,255,80,.7);background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;display:none';
+      if(_lblC)_lblC.appendChild(el);}
+    el.textContent=r.username||'?';
+    r.mesh.getWorldPosition(vv);vv.y+=2.9;vv.project(camera);
+    if(vv.z>1){el.style.display='none';continue;}
+    el.style.left=(((vv.x+1)/2)*W)+'px';el.style.top=(((-vv.y+1)/2)*H)+'px';el.style.display='block';
+  }
+}
+
+// ── PATCH RENDER LOOP ────────────────────────────────────────────
+var _v27_orig_loop=loop;
+loop=function(ts){_v27_orig_loop(ts);if(gameOn){v27_minimap();v27_labels();}};
+
+// Hamburger -> dashboard
+function cycleWpnIG(){openSquadPanel();}
+
+// ── OVERRIDES CRITIQUES ──────────────────────────────────────────
+// selF: la version v21 cherche des elements HTML supprimes -> crash
+function selF(f,sf){faction=f;subfaction=sf;sfKey=f+'_'+sf;}
+
+// selSide: idem
+function selSide(side){lob_selFaction(side);}
+
+// _doStart: FIX BLACK SCREEN
+// initEngine() TOUJOURS immediat + detruire le renderer de preview
+function _doStart(){
+  myUsername=(document.getElementById('user-name')?document.getElementById('user-name').value:'Soldat')||'Soldat';
+  myUsername=myUsername.trim()||'Soldat';
+  sfKey=faction+'_'+subfaction;
+  if(!tapeColor)tapeColor=(faction==='UA'?0xFFD700:0xCC2222);
+  else if(faction==='RU'&&tapeColor===0xFFD700)tapeColor=0xCC2222;
+  var _menu=document.getElementById('menu');if(_menu)_menu.style.display='none';
+  var _hud=document.getElementById('hud');if(_hud)_hud.style.display='block';
+  var _nsx=document.getElementById('nsx');if(_nsx)_nsx.style.display='block';
+  var _sco=document.getElementById('score-hud');if(_sco)_sco.style.display='block';
+  if(!isMobile){var _clk=document.getElementById('clk');if(_clk)_clk.style.display='block';}
+  var spZ=faction==='UA'?-82:82,spX=(Math.random()-.5)*16;
+  pPos.set(spX,tH(spX,spZ)+2,spZ);pYaw=faction==='UA'?Math.PI:0;
+  // Detruire le renderer preview pour eviter conflit WebGL
+  if(window._pvA){cancelAnimationFrame(window._pvA);window._pvA=null;}
+  if(window._pvR){try{window._pvR.forceContextLoss();window._pvR.dispose();}catch(e){}window._pvR=null;window._pvS=null;window._pvC=null;}
+  // Moteur TOUJOURS immediat
+  initEngine();gameOn=true;updateHUD();
+  if(renderer)renderer.domElement.style.filter='';
+  lastT=performance.now()/1000;requestAnimationFrame(loop);
+  if(scene&&scene.children&&scene.children.includes(camera)){scene.remove(camera);_weaponScene.add(camera);}
+  if(!isMobile)setTimeout(function(){var cv=document.getElementById('c');if(cv)cv.requestPointerLock();},300);
+  var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='block';
+  if(!_soldierGLTF){var _lm=document.getElementById('load-msg');if(_lm)_lm.style.display='block';
+    loadSoldierModel(function(){if(_lm)_lm.style.display='none';});}
+  setTimeout(function(){var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';},300);
+  // Publier position initiale
+  if(chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+}
+
+// Compat
+function deployGame(){lob_spawn();}
+function backToPhase1(){}
+function goPhase2(){}
+function copyRoomLink(){var url=location.origin+location.pathname+'?room='+(roomCode||'');if(navigator.clipboard)navigator.clipboard.writeText(url);else prompt('URL:',url);}
+function showRoomStatus(code,info){var cd=document.getElementById('lob-code-display');if(cd)cd.textContent=code;}
+function closeSquadPanel(){dash_close();}
+function respawnFromPanel(){doRespawn();dash_close();}
+function leaveSquad(){lob_quit();}
+
+// ── AUTO-JOIN via URL ?room=CODE ─────────────────────────────────
+(function(){
+  try{
+    var rc=new URLSearchParams(window.location.search).get('room');
+    if(rc&&rc.length>=4){
+      var ri=document.getElementById('room-input');if(ri)ri.value=rc.toUpperCase();
+      setTimeout(function(){srv_joinByCode();},800);
+    }
+  }catch(e){}
+})();
+
+// ── DECOUVERTE DES L'OUVERTURE DE LA PAGE ────────────────────────
+setTimeout(function(){
+  initAbly(function(){
+    if(!_srvChan){
+      _srvChan=ablyClient.channels.get('fl22_servers_v2');
+      _srvChan.subscribe('announce',function(msg){
+        var d=msg.data;if(!d||!d.code)return;
+        _servers[d.code]={host:d.host||'?',players:d.players||1,ts:Date.now()};
+        srv_render();
+      });
+      _srvChan.subscribe('close',function(msg){
+        if(msg.data&&msg.data.code)delete _servers[msg.data.code];srv_render();
+      });
+    }
+    srv_render();
+  });
+}, 1000);
+
+</script>
