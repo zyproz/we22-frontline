@@ -4668,11 +4668,15 @@ body.drone-active #btn-fire-l{
   </div>
 </div>
 <div id="player-labels" style="position:fixed;inset:0;pointer-events:none;z-index:20;overflow:hidden"></div>
-<div id="minimap-wrap" style="display:none;position:fixed;top:12px;left:12px;z-index:30;
-  width:130px;height:130px;border-radius:8px;overflow:hidden;
-  border:1px solid rgba(255,255,255,.2);background:rgba(8,12,8,.9)">
-  <canvas id="minimap-cv" width="130" height="130"></canvas>
-  <div style="position:absolute;bottom:2px;right:4px;font-size:8px;color:rgba(255,255,255,.3);font-family:Courier New,monospace">MAP</div>
+<div id="minimap-wrap" style="display:none;position:fixed;top:6px;left:6px;z-index:30;
+  width:120px;border-radius:8px;overflow:visible;background:transparent">
+  <!-- Minimap canvas -->
+  <div style="width:120px;height:120px;border-radius:8px;overflow:hidden;
+    border:1px solid rgba(255,255,255,.2);background:rgba(8,12,8,.9);position:relative">
+    <canvas id="minimap-cv" width="120" height="120"></canvas>
+    <div style="position:absolute;bottom:2px;right:4px;font-size:7px;
+      color:rgba(255,255,255,.3);font-family:Courier New,monospace">MAP</div>
+  </div>
 </div>
 
 <canvas id="c"></canvas>
@@ -5416,7 +5420,7 @@ function initEngine(){
   try{buildProps();}catch(e){console.error('[FL22] buildProps:',e);}
   try{buildWeapon();}catch(e){console.error('[FL22] buildWeapon:',e);}
   // Spawner le drone sur la map
-  setTimeout(function(){try{spawnDroneOnMap();}catch(e){console.warn('[FL22] drone:',e);}},400);
+  setTimeout(function(){if(typeof inRoom!=='undefined'&&inRoom){try{spawnDroneOnMap();}catch(e){console.warn('[FL22] drone:',e);}}},400);
   if(isMobile)setupTouch();else setupKBM();
   window.addEventListener('resize',()=>{
     camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
@@ -8184,7 +8188,7 @@ function _doStart(){
     var _lm = document.getElementById('load-msg'); if(_lm) _lm.style.display='block';
     loadSoldierModel(function(){
       if(_lm) _lm.style.display = 'none';
-      try{ if(wpGroup){_weaponScene.remove(wpGroup);wpGroup=null;} buildWeapon(); } catch(e){}
+      // buildWeapon() deja appele par initEngine() - pas besoin ici
     });
   }
   setTimeout(function(){
@@ -8292,9 +8296,12 @@ function v26_joinSF(btn){
   var bs=document.getElementById('btn-spawn'); if(bs) bs.style.display='block';
 }
 
+var _v26_spawned = false;
 function v26_spawn(){
+  if(_v26_spawned){ return; } // Eviter double spawn (double tap)
   try{
     if(!sfKey||!faction){ alert('Choisissez une escouade'); return; }
+    _v26_spawned = true;
     // S'assurer que les variables sont bien definies
     if(typeof faction==='undefined'||!faction){ faction='UA'; }
     if(typeof subfaction==='undefined'||!subfaction){ subfaction='REG'; }
@@ -8410,7 +8417,7 @@ var _MMB=[[-55,-52,28,12],[0,-52,28,12],[55,-52,28,12],
 function v26_minimap(){
   if(!gameOn||typeof pPos==='undefined') return;
   if(!_mmC){_mmC=document.getElementById('minimap-cv'); if(!_mmC) return; _mmX=_mmC.getContext('2d');}
-  var W=130, sc=W/200, ctx=_mmX;
+  var W=120, sc=W/200, ctx=_mmX;
   ctx.clearRect(0,0,W,W); ctx.fillStyle='rgba(8,14,8,.95)'; ctx.fillRect(0,0,W,W);
   ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.lineWidth=0.5;
   for(var g=0;g<=W;g+=13){ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,g);ctx.lineTo(W,g);ctx.stroke();}
