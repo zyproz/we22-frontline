@@ -8240,21 +8240,24 @@ function g_connect(){
 
   initAbly(function(){
     chan = ablyClient.channels.get('fl22_' + GLOBAL_ROOM);
-    setupChan();
 
-    // Hook additionnel pour le lobby
+    // PAS de setupChan() ici - scene n'existe pas encore.
+    // setupChan() sera appele dans _doStart() apres initEngine().
+    // Ici on ecoute uniquement les evenements de lobby.
     chan.subscribe('join', function(msg){
       if(msg.data && msg.data.id !== myId) g_onJoin(msg.data);
     });
 
-    if(st) st.textContent = '🟢 Serveur en ligne · ' + Object.keys(remotes).length + ' joueur(s)';
+    if(st) st.textContent = '\uD83D\uDFE2 Serveur en ligne · ' + (1+Object.keys(remotes).length) + ' joueur(s)';
     setSt('ok', 'SERVEUR GLOBAL', '#44CC88');
 
-    // Annoncer sa présence dans le lobby
     var uname = (document.getElementById('user-name')||{}).value || 'Soldat';
     myUsername = uname.trim() || 'Soldat';
-    chan.publish('join', {id:myId, sfk:'', username:myUsername});
 
+    // FIX: ajouter SOI-MEME dans la liste des joueurs
+    _g_players[myId] = {id:myId, name:myUsername, sfk:''};
+
+    chan.publish('join', {id:myId, sfk:'', username:myUsername});
     g_updatePlayers();
   });
 }
@@ -8448,30 +8451,80 @@ function cycleWpnIG(){openSquadPanel();}
 function selF(f,sf){faction=f;subfaction=sf;sfKey=f+'_'+sf;}
 function selSide(side){g_selFaction(side);}
 
-/* FIX BLACK SCREEN: initEngine immediat + détruire preview WebGL */
+/* _doStart — FIX triple:
+   1. initEngine + setupChan + loop : UNE SEULE FOIS (flag _g_started)
+   2. Re-spawn : uniquement reset position + afficher canvas
+   3. Canvas display:none remis a vide avant rendu             */
+var _g_started = false;
 function _doStart(){
   myUsername=((document.getElementById('user-name')||{}).value||'Soldat').trim()||'Soldat';
   sfKey=faction+'_'+subfaction;
   if(!tapeColor)tapeColor=(faction==='UA'?0xFFD700:0xCC2222);
   else if(faction==='RU'&&tapeColor===0xFFD700)tapeColor=0xCC2222;
+
+  /* Cacher le menu, afficher le HUD */
   var _menu=document.getElementById('menu');if(_menu)_menu.style.display='none';
   var _hud=document.getElementById('hud');if(_hud)_hud.style.display='block';
   var _nsx=document.getElementById('nsx');if(_nsx)_nsx.style.display='block';
   var _sco=document.getElementById('score-hud');if(_sco)_sco.style.display='block';
   if(!isMobile){var _clk=document.getElementById('clk');if(_clk)_clk.style.display='block';}
-  var spZ=faction==='UA'?-82:82,spX=(Math.random()-.5)*16;
+
+  /* Position de spawn */
+  var spZ=faction==='UA'?-82:82, spX=(Math.random()-.5)*16;
   pPos.set(spX,tH(spX,spZ)+2,spZ); pYaw=faction==='UA'?Math.PI:0;
-  if(window._pvA){cancelAnimationFrame(window._pvA);window._pvA=null;}
-  if(window._pvR){try{window._pvR.forceContextLoss();window._pvR.dispose();}catch(e){}window._pvR=null;window._pvS=null;window._pvC=null;}
-  initEngine(); gameOn=true; updateHUD();
-  if(renderer)renderer.domElement.style.filter='';
-  lastT=performance.now()/1000; requestAnimationFrame(loop);
-  if(scene&&scene.children&&scene.children.includes(camera)){scene.remove(camera);_weaponScene.add(camera);}
-  if(!isMobile)setTimeout(function(){var cv=document.getElementById('c');if(cv)cv.requestPointerLock();},300);
+
+  if(!_g_started){
+    /* ── PREMIER SPAWN : init complète ── */
+    _g_started = true;
+
+    /* Detruire renderer de preview (conflit WebGL) */
+    if(window._pvA){cancelAnimationFrame(window._pvA);window._pvA=null;}
+    if(window._pvR){try{window._pvR.forceContextLoss();window._pvR.dispose();}catch(e){}
+      window._pvR=null;window._pvS=null;window._pvC=null;}
+
+    /* Moteur 3D */
+    initEngine();
+
+    /* setupChan() ICI, apres initEngine(): scene existe -> scene.add() fonctionnera */
+    setupChan();
+
+    /* Canvas visible */
+    if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
+
+    /* Demarrer la boucle UNE SEULE FOIS */
+    lastT=performance.now()/1000;
+    requestAnimationFrame(loop);
+
+    /* Camera dans weaponScene */
+    if(scene&&scene.children&&scene.children.includes(camera)){
+      scene.remove(camera);_weaponScene.add(camera);}
+
+    if(!isMobile)setTimeout(function(){var cv=document.getElementById('c');
+      if(cv)cv.requestPointerLock();},300);
+
+    /* Charger modele en arriere-plan si absent */
+    if(!_soldierGLTF){var _lm=document.getElementById('load-msg');if(_lm)_lm.style.display='block';
+      loadSoldierModel(function(){if(_lm)_lm.style.display='none';});}
+
+    setTimeout(function(){
+      var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';
+      var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';},300);
+
+  } else {
+    /* ── RE-SPAWN : reutiliser le moteur existant ── */
+    /* Juste remettre le canvas visible + reconstruire l'arme */
+    if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
+    if(wpGroup){_weaponScene.remove(wpGroup);wpGroup=null;}
+    buildWeapon();
+    lastT=performance.now()/1000;
+    /* S'assurer que la camera est dans weaponScene */
+    if(scene&&camera&&scene.children.includes(camera)){
+      scene.remove(camera);_weaponScene.add(camera);}
+  }
+
   var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='block';
-  if(!_soldierGLTF){var _lm=document.getElementById('load-msg');if(_lm)_lm.style.display='block';
-    loadSoldierModel(function(){if(_lm)_lm.style.display='none';});}
-  setTimeout(function(){var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';},300);
+  gameOn=true;
+  updateHUD();
   if(chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
 }
 
