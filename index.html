@@ -4605,8 +4605,13 @@ body.drone-active #btn-fire-l{
   <div style="width:100%;max-width:380px;background:rgba(255,255,255,.04);
     border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;
     margin-bottom:12px">
-    <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);
-      font-family:'Courier New',monospace;margin-bottom:4px">JOUEURS EN LIGNE</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);
+        font-family:'Courier New',monospace">JOUEURS EN LIGNE</div>
+      <button onclick="g_refreshNow()" style="background:none;border:none;
+        color:rgba(255,255,255,.45);font-size:16px;cursor:pointer;padding:0 2px;
+        font-family:'Courier New',monospace" title="Actualiser">&#8635;</button>
+    </div>
     <div id="g-players" style="font-size:11px;color:rgba(255,255,255,.5);
       font-family:'Courier New',monospace;min-height:16px">...</div>
   </div>
@@ -8263,10 +8268,28 @@ function g_autoConnect(){
       _g_online[d.id]={name:d.username||'?',sfk:d.sfk||''};
       if(remotes[d.id]){remotes[d.id].username=d.username;if(d.sfk)remotes[d.id].sfk=d.sfk;}
       g_updateLobby();
+      /* Refresh dashboard si ouvert */
+      var _dpj=document.getElementById('squad-panel');
+      if(_dpj&&_dpj.style.display!=='none')g_dashUpdate();
     });
     chan.subscribe('bye',function(msg){
       if(msg.data&&msg.data.id){delete _g_online[msg.data.id];}
       g_updateLobby();
+    });
+    /* Hook pos: mise a jour rapide sfk + refresh dashboard si ouvert */
+    chan.subscribe('pos',function(msg){
+      var _p=msg.data;if(!_p||_p.id===myId)return;
+      if(_p.sfk&&_p.username&&_g_online[_p.id]){
+        _g_online[_p.id].sfk=_p.sfk;
+        _g_online[_p.id].name=_p.username||_g_online[_p.id].name;
+      }else if(_p.sfk&&!_g_online[_p.id]){
+        _g_online[_p.id]={name:_p.username||'?',sfk:_p.sfk};
+      }
+      /* Refresh dashboard si ouvert */
+      var _dp=document.getElementById('squad-panel');
+      if(_dp&&_dp.style.display!=='none')g_dashUpdate();
+      /* Refresh liste menu si visible */
+      if(inRoom&&!gameOn)g_updateLobby();
     });
 
     // Annoncer sa présence
@@ -8502,8 +8525,10 @@ var _g_started=false;
 function _doStart(){
   myUsername=((document.getElementById('user-name')||{}).value||'Soldat').trim()||'Soldat';
   sfKey=faction+'_'+subfaction;
-  if(!tapeColor)tapeColor=(faction==='UA'?0xFFD700:0xCC2222);
-  else if(faction==='RU'&&tapeColor===0xFFD700)tapeColor=0xCC2222;
+  /* Toujours prendre outfit depuis _SF (évite stale tapeColor/weapon) */
+  var _sfC2=_SF[sfKey];
+  if(_sfC2){weapon=_sfC2.wpn;tapeColor=_sfC2.tape;}
+  else if(!tapeColor)tapeColor=(faction==='UA'?0xFFD700:0xCC2222);
 
   // Cacher menu, montrer HUD
   var _m=document.getElementById('menu');if(_m)_m.style.display='none';
@@ -8540,16 +8565,32 @@ function _doStart(){
 
   }else{
     /* ═══ RE-SPAWN: réutiliser le moteur ═══ */
-    // Montrer le canvas (était caché par g_quit)
+    /* 1. Forcer outfit correct depuis sfKey (évite les tenues de la session précédente) */
+    var _sfCfg=_SF[sfKey];
+    if(_sfCfg){weapon=_sfCfg.wpn;tapeColor=_sfCfg.tape;}
+
+    /* 2. Montrer le canvas */
     if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
-    // Rebuild weapon sans doublon
-    if(wpGroup){try{_weaponScene.remove(wpGroup);}catch(e){}wpGroup=null;}
-    try{buildWeapon();}catch(e){}
-    // Remettre la camera dans weaponScene
+
+    /* 3. NUCLEAR FIX doublon: vider TOUT _weaponScene sauf camera
+          (évite les weapon groups flottants de la session précédente) */
+    if(_weaponScene){
+      var _toRm=[];
+      _weaponScene.children.forEach(function(ch){if(ch!==camera)_toRm.push(ch);});
+      _toRm.forEach(function(ch){_weaponScene.remove(ch);});
+    }
+    wpGroup=null;
+
+    /* 4. Rebuild weapon propre avec nouvel outfit */
+    try{buildWeapon();}catch(e){console.warn('buildWeapon respawn:',e);}
+
+    /* 5. Camera dans weaponScene */
     if(scene&&camera){
       if(scene.children.indexOf(camera)>=0)scene.remove(camera);
       if(_weaponScene.children.indexOf(camera)<0)_weaponScene.add(camera);
     }
+
+    /* 6. Remettre la boucle à jour */
     gameOn=true;updateHUD();
     lastT=performance.now()/1000;
   }
@@ -8618,6 +8659,25 @@ if(document.readyState==='loading'){
 }else{
   setTimeout(g_autoConnect,900);
 }
+
+/* Refresh manuel (bouton ↺) */
+function g_refreshNow(){
+  g_updateLobby();
+  if(chan&&inRoom)chan.publish('join',{id:myId,sfk:sfKey||'',username:myUsername||'Soldat'});
+}
+
+/* Heartbeat 4s: re-publier join pour tenir la liste a jour */
+setInterval(function(){
+  if(!inRoom||!chan)return;
+  /* Mettre a jour le pseudo si change */
+  var el=document.getElementById('user-name');
+  if(el){var n=el.value.trim()||'Soldat';if(n!==myUsername){myUsername=n;if(_g_online[myId])_g_online[myId].name=n;}}
+  if(!gameOn){
+    /* Dans le menu: republier join + refresh liste */
+    chan.publish('join',{id:myId,sfk:sfKey||'',username:myUsername||'Soldat'});
+    g_updateLobby();
+  }
+},4000);
 
 /* Sync pseudo si changé */
 var _g_uname_prev='';
