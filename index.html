@@ -4643,7 +4643,7 @@ body.drone-active #btn-fire-l{
   <input id="srv" type="hidden">
 </div>
 
-<!-- DASHBOARD in-game -->
+<!-- DASHBOARD in-game (lecture seule - pas de changement d'equipe) -->
 <div id="squad-panel" style="display:none;position:fixed;inset:0;z-index:90;
   background:rgba(0,0,0,.93);flex-direction:column;align-items:center;
   padding:14px 12px;overflow-y:auto">
@@ -4658,39 +4658,39 @@ body.drone-active #btn-fire-l{
       color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;
       font-size:12px;font-family:'Courier New',monospace">FERMER</button>
   </div>
-  <div style="display:flex;gap:8px;width:100%;max-width:480px;margin-bottom:12px">
-    <div style="flex:1;background:rgba(0,60,160,.15);border:1px solid rgba(0,100,255,.22);
-      border-radius:8px;padding:10px">
-      <div style="font-size:9px;letter-spacing:2px;color:#4488FF;
-        font-family:'Courier New',monospace;margin-bottom:6px">UKRAINE</div>
-      <div id="dash-ua" style="font-size:11px;color:#88AACC;
-        font-family:'Courier New',monospace;line-height:1.8"></div>
-    </div>
-    <div style="flex:1;background:rgba(160,0,0,.15);border:1px solid rgba(255,50,50,.22);
-      border-radius:8px;padding:10px">
-      <div style="font-size:9px;letter-spacing:2px;color:#FF5555;
-        font-family:'Courier New',monospace;margin-bottom:6px">RUSSIE</div>
-      <div id="dash-ru" style="font-size:11px;color:#CC8888;
-        font-family:'Courier New',monospace;line-height:1.8"></div>
-    </div>
-  </div>
-  <div id="dash-myunit" style="width:100%;max-width:480px;margin-bottom:8px;
+  <!-- Votre unite -->
+  <div id="dash-myunit" style="width:100%;max-width:480px;margin-bottom:10px;
     background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.18);
     border-radius:6px;padding:8px 12px;font-family:'Courier New',monospace;
     font-size:11px;color:#FFD700"></div>
-  <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);
-    margin-bottom:6px;font-family:'Courier New',monospace">CHANGER D'UNITE</div>
-  <div id="dash-units" class="fg"
-    style="gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px"></div>
+  <!-- Joueurs UA -->
+  <div style="width:100%;max-width:480px;background:rgba(0,60,160,.15);
+    border:1px solid rgba(0,100,255,.22);border-radius:8px;padding:10px;margin-bottom:8px">
+    <div style="font-size:9px;letter-spacing:2px;color:#4488FF;
+      font-family:'Courier New',monospace;margin-bottom:6px">UKRAINE</div>
+    <div id="dash-ua" style="font-size:12px;color:#88AACC;
+      font-family:'Courier New',monospace;line-height:1.9"></div>
+  </div>
+  <!-- Joueurs RU -->
+  <div style="width:100%;max-width:480px;background:rgba(160,0,0,.15);
+    border:1px solid rgba(255,50,50,.22);border-radius:8px;padding:10px;margin-bottom:12px">
+    <div style="font-size:9px;letter-spacing:2px;color:#FF5555;
+      font-family:'Courier New',monospace;margin-bottom:6px">RUSSIE</div>
+    <div id="dash-ru" style="font-size:12px;color:#CC8888;
+      font-family:'Courier New',monospace;line-height:1.9"></div>
+  </div>
+  <div style="width:100%;max-width:480px;margin-bottom:10px;font-size:9px;
+    color:rgba(255,255,255,.25);font-family:'Courier New',monospace;text-align:center">
+    Pour changer d'equipe ou d'unite : quitter et revenir</div>
   <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:480px">
     <button onclick="doRespawn();g_closeDash();"
-      style="padding:12px;background:rgba(0,180,80,.2);border:1px solid rgba(0,200,80,.4);
+      style="padding:14px;background:rgba(0,180,80,.2);border:1px solid rgba(0,200,80,.4);
       color:#44FF88;border-radius:8px;font-size:13px;letter-spacing:2px;
       cursor:pointer;font-family:'Courier New',monospace">REDEPLOYER</button>
     <button onclick="g_quit()"
-      style="padding:12px;background:rgba(200,0,0,.15);border:1px solid rgba(255,0,0,.3);
+      style="padding:14px;background:rgba(200,0,0,.15);border:1px solid rgba(255,0,0,.3);
       color:#FF6666;border-radius:8px;font-size:13px;letter-spacing:2px;
-      cursor:pointer;font-family:'Courier New',monospace">QUITTER</button>
+      cursor:pointer;font-family:'Courier New',monospace">QUITTER LA PARTIE</button>
   </div>
 </div>
 
@@ -8284,8 +8284,8 @@ function g_updateLobby(){
   for(var id in _g_online){
     var p=_g_online[id]; var sf=_SF[p.sfk||''];
     var col=sf?(sf.f==='UA'?'#4488FF':'#FF5555'):'rgba(255,255,255,.5)';
-    html+='<span style="color:'+col+';margin-right:10px">'+(sf?sf.name+' ':'')+
-          '<b>'+(p.name||'?')+'</b>'+(id===myId?' (moi)':'')+'</span>';
+    html+='<div style="color:'+col+';margin-bottom:3px;line-height:1.4">'+(sf?'['+sf.name+'] ':'')+
+          '<b>'+(p.name||'?')+'</b>'+(id===myId?' <span style="color:rgba(255,255,255,.4);font-size:10px">(moi)</span>':'')+'</div>';
   }
   var el=document.getElementById('g-players');
   if(el)el.innerHTML=html||'Aucun joueur...';
@@ -8361,14 +8361,25 @@ function g_quit(){
   _g_spawned=false;
   gameOn=false;
   g_closeDash();
-  // Cacher les éléments jeu
+  /* Nettoyer les personnages distants de la scene pour eviter les doublons au re-spawn */
+  if(scene){
+    for(var _qid in remotes){
+      var _qr=remotes[_qid];
+      if(_qr&&_qr.mesh){try{scene.remove(_qr.mesh);}catch(e){}}
+      if(_qr&&_qr._rdMesh){try{scene.remove(_qr._rdMesh);}catch(e){}}
+    }
+  }
+  remotes={};
+  /* Supprimer aussi les labels */
+  var pl=document.getElementById('player-labels');if(pl)pl.innerHTML='';
+  _lblC=null;
+  /* Cacher elements jeu */
   var hud=document.getElementById('hud');if(hud)hud.style.display='none';
   var sco=document.getElementById('score-hud');if(sco)sco.style.display='none';
   var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='none';
-  var pl=document.getElementById('player-labels');if(pl)pl.innerHTML='';
-  // Cacher canvas (sera ré-affiché par _doStart au re-spawn)
+  /* Cacher canvas */
   if(renderer)renderer.domElement.style.display='none';
-  // Revenir au menu (garder connexion Ably)
+  /* Revenir au menu, garder connexion Ably */
   var menu=document.getElementById('menu');if(menu)menu.style.display='flex';
   var bs=document.getElementById('btn-spawn');if(bs)bs.style.display=(sfKey?'block':'none');
   if(chan)chan.publish('join',{id:myId,sfk:sfKey||'',username:myUsername});
@@ -8378,49 +8389,43 @@ function g_quit(){
 /* ── DASHBOARD ────────────────────────────────────────────────── */
 function openSquadPanel(){
   var dp=document.getElementById('squad-panel');if(dp)dp.style.display='flex';
-  g_dashUpdate();g_dashBuildUnits();
+  g_dashUpdate();
 }
 function g_closeDash(){var dp=document.getElementById('squad-panel');if(dp)dp.style.display='none';}
 
 function g_dashUpdate(){
   var ua='',ru='';
   var myN=myUsername||'Soldat';var mySF=_SF[sfKey];
-  if(faction==='UA')ua+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
-  else ru+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
-  for(var id in remotes){var r=remotes[id];var nm=r.username||'?';
+  /* Soi-meme */
+  var myEntry='<div style="color:#FFD700;margin-bottom:3px"><b>'+myN+'</b>'+
+    (mySF?' <span style="color:rgba(255,215,0,.5);font-size:10px">('+mySF.name+')</span>':'')+
+    ' <span style="color:rgba(255,255,255,.3);font-size:9px">(moi)</span></div>';
+  if(faction==='UA')ua+=myEntry; else ru+=myEntry;
+  /* Autres joueurs */
+  for(var id in remotes){
+    var r=remotes[id];var nm=r.username||'?';
     var rk=r.sfk||'';var rsf=_SF[rk];
-    var e='<div>'+nm+(rsf?' - '+rsf.name:'')+'</div>';
-    if(rk.indexOf('UA')===0)ua+=e;else ru+=e;}
+    var e='<div style="margin-bottom:3px"><b>'+nm+'</b>'+
+      (rsf?' <span style="color:rgba(255,255,255,.4);font-size:10px">('+rsf.name+')</span>':'')+
+      '</div>';
+    if(rk.indexOf('UA')===0)ua+=e;else ru+=e;
+  }
+  /* Joueurs en ligne (lobby) */
+  for(var lid in _g_online){
+    if(lid===myId||remotes[lid])continue;
+    var lp=_g_online[lid];var lsf=_SF[lp.sfk||''];
+    if(!lsf)continue;
+    var le='<div style="margin-bottom:3px;color:rgba(255,255,255,.5)"><b>'+lp.name+'</b>'+
+      ' <span style="color:rgba(255,255,255,.3);font-size:10px">('+lsf.name+' - lobby)</span></div>';
+    if(lsf.f==='UA')ua+=le;else ru+=le;
+  }
   var ph='<div style="opacity:.3;font-size:10px">-</div>';
   var eu=document.getElementById('dash-ua');if(eu)eu.innerHTML=ua||ph;
   var er=document.getElementById('dash-ru');if(er)er.innerHTML=ru||ph;
   var myU=_SF[sfKey];var du=document.getElementById('dash-myunit');
-  if(du)du.textContent='Unite: '+(myU?myU.name+' | '+myU.desc:'?');
+  if(du)du.textContent='Votre unite: '+(myU?myU.name+' | '+myU.desc:'?');
 }
-
-function g_dashBuildUnits(){
-  var keys=Object.keys(_SF).filter(function(k){return _SF[k].f===faction;});
-  var html='';
-  for(var i=0;i<keys.length;i++){var k=keys[i];var sf=_SF[k];
-    var sel=(k===sfKey)?' sel-'+faction.toLowerCase():'';
-    html+='<button class="fc'+sel+'" data-sfk="'+k+'" onclick="g_dashChg(this)"'+
-      ' style="min-width:90px;padding:7px 4px">'+
-      '<div style="font-size:9px;font-weight:bold">'+sf.name+'</div>'+
-      '<div style="font-size:8px;color:rgba(255,255,255,.4)">'+sf.wpn+'</div></button>';}
-  var dm=document.getElementById('dash-units');if(dm)dm.innerHTML=html;
-}
-
-function g_dashChg(btn){
-  var k=btn.getAttribute('data-sfk');if(!k||!_SF[k])return;
-  var sf=_SF[k];subfaction=sf.sf;sfKey=k;weapon=sf.wpn;tapeColor=sf.tape;
-  if(_g_online[myId])_g_online[myId].sfk=k;
-  if(chan)chan.publish('join',{id:myId,sfk:k,username:myUsername});
-  // Reconstruire l'arme SANS créer de doublon
-  if(wpGroup){try{_weaponScene.remove(wpGroup);}catch(e){}wpGroup=null;}
-  buildWeapon();
-  g_closeDash();
-  g_dashUpdate();
-}
+/* g_dashBuildUnits et g_dashChg supprimes (pas de changement d'equipe en jeu) */
 
 /* ── MINIMAP ─────────────────────────────────────────────────── */
 var _mmC=null,_mmX=null;
@@ -8441,14 +8446,14 @@ function g_minimap(){
   for(var b=0;b<_MMB.length;b++){var bl=_MMB[b];
     ctx.fillRect((bl[0]+100)*sc-bl[2]*sc/2,(bl[1]+100)*sc-bl[3]*sc/2,bl[2]*sc,bl[3]*sc);}
   for(var rid in remotes){var rm=remotes[rid];if(!rm.mesh||!rm.visible)continue;
-    ctx.fillStyle=(rm.sfk&&rm.sfk.indexOf(faction.substring(0,2))===0)?
-      'rgba(68,255,136,.9)':'rgba(255,60,60,.9)';
-    ctx.beginPath();ctx.arc((rm.mesh.position.x+100)*sc,(rm.mesh.position.z+100)*sc,3,0,Math.PI*2);ctx.fill();}
+    var _isA=rm.sfk&&rm.sfk.indexOf(faction.substring(0,2))===0;
+    ctx.fillStyle=_isA?'rgba(60,220,100,.95)':'rgba(255,60,60,.9)';
+    ctx.beginPath();ctx.arc((rm.mesh.position.x+100)*sc,(rm.mesh.position.z+100)*sc,_isA?4:3,0,Math.PI*2);ctx.fill();}
+  /* Point bleu = soi-meme, points verts = allies */
   var px=(pPos.x+100)*sc,pz=(pPos.z+100)*sc;
-  ctx.save();ctx.translate(px,pz);ctx.rotate(pYaw);
-  ctx.fillStyle='rgba(80,160,255,1)';ctx.beginPath();
-  ctx.moveTo(0,-5);ctx.lineTo(-3,3);ctx.lineTo(0,1);ctx.lineTo(3,3);ctx.closePath();ctx.fill();
-  ctx.strokeStyle='rgba(200,230,255,.8)';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+  ctx.beginPath();ctx.arc(px,pz,5,0,Math.PI*2);
+  ctx.fillStyle='rgba(60,140,255,1)';ctx.fill();
+  ctx.strokeStyle='rgba(180,220,255,.9)';ctx.lineWidth=1.5;ctx.stroke();
   ctx.strokeStyle='rgba(80,180,80,.3)';ctx.lineWidth=1;ctx.strokeRect(.5,.5,W-1,W-1);
 }
 
@@ -8549,18 +8554,35 @@ function _doStart(){
     lastT=performance.now()/1000;
   }
 
-  // Minimap, annonce position
+  // Minimap
   var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='block';
-  if(chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+  // NOTE: chan.publish('join',...) est fait dans _g_doInit() APRES initEngine
+  // Pour le re-spawn, publier immediatement
+  if(_g_started&&chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
   setTimeout(function(){
-    var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';
+    var b=document.getElementById('btn-wpn-ig');if(b){b.style.display='flex';b.style.left='132px';b.style.top='6px';}
     var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';
   },300);
 }
 
-/* Helper: init moteur + boucle (appelé UNE seule fois) */
+/* Helper: init moteur + boucle (appelé UNE seule fois)
+   CRITIQUE: publier 'join' ICI, apres initEngine() + scene cree.
+   Les autres repondront avec leur 'pos' → scene existe → characters crees. */
 function _g_doInit(){
   initEngine();
+
+  /* Reconstruire les personnages distants crees avant initEngine
+     (quand scene etait null, des chars vides ont pu etre mis dans remotes) */
+  for(var _rid in remotes){
+    var _rm=remotes[_rid];
+    if(_rm.mesh){try{scene.remove(_rm.mesh);}catch(e){}}
+    try{
+      var _ng=createChar(_rm.sfk||'UA_REG');
+      scene.add(_ng);
+      _rm.mesh=_ng;_rm.visible=true;
+    }catch(e){}
+  }
+
   gameOn=true;updateHUD();
   if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
   lastT=performance.now()/1000;
@@ -8568,6 +8590,15 @@ function _g_doInit(){
   if(scene&&scene.children.indexOf(camera)>=0){scene.remove(camera);_weaponScene.add(camera);}
   if(!isMobile)setTimeout(function(){
     var cv=document.getElementById('c');if(cv)cv.requestPointerLock();},300);
+
+  /* Publier join ICI (scene existe): les autres repondront avec pos */
+  if(chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+
+  /* Repositionner hamburger hors de la minimap */
+  setTimeout(function(){
+    var b=document.getElementById('btn-wpn-ig');
+    if(b){b.style.left='132px';b.style.top='6px';}
+  },100);
 }
 
 /* ── COMPAT v20 ──────────────────────────────────────────────── */
