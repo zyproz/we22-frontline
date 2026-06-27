@@ -8298,6 +8298,16 @@ function g_autoConnect(){
     setSt('ok','SERVEUR GLOBAL','#44CC88');
     var st=document.getElementById('g-status');
     if(st)st.textContent='\uD83D\uDFE2 Serveur en ligne';
+
+    /* PRECHARGER le modele 3D en arriere-plan DES maintenant.
+       Quand le joueur clique SPAWN, le modele sera deja pret
+       → _g_doInit() s'execute instantanement, pas de 3-8s d'attente */
+    if(!_soldierGLTF){
+      try{loadSoldierModel(function(){
+        var st2=document.getElementById('g-status');
+        if(st2&&!gameOn)st2.textContent='\uD83D\uDFE2 Serveur en ligne (3D pret)';
+      });}catch(e){}
+    }
   });
 }
 
@@ -8565,15 +8575,36 @@ function _doStart(){
 
   }else{
     /* ═══ RE-SPAWN: réutiliser le moteur ═══ */
-    /* 1. Forcer outfit correct depuis sfKey (évite les tenues de la session précédente) */
+
+    /* 0. Reset état mort/dying (évite d'arriver gelé si on était mort en quittant) */
+    dead=false; hp=100; dyingT=0; reloading=false;
+    ammo=(typeof MAX_AMMO!=='undefined'?MAX_AMMO:30); mags=4;
+    var _deadEl=document.getElementById('dead');
+    if(_deadEl)_deadEl.style.setProperty('display','none','important');
+    var _dmgEl=document.getElementById('dmg');
+    if(_dmgEl)_dmgEl.style.background='transparent';
+
+    /* 1. Forcer outfit correct depuis sfKey */
     var _sfCfg=_SF[sfKey];
     if(_sfCfg){weapon=_sfCfg.wpn;tapeColor=_sfCfg.tape;}
 
-    /* 2. Montrer le canvas */
+    /* 2. VIDER les remotes accumules pendant la phase menu
+          (les pos recus quand gameOn=false creent des fantomes immobiles) */
+    if(scene){
+      for(var _rq2 in remotes){
+        var _rm2=remotes[_rq2];
+        if(_rm2&&_rm2.mesh){try{scene.remove(_rm2.mesh);}catch(e){}}
+        if(_rm2&&_rm2._rdMesh){try{scene.remove(_rm2._rdMesh);}catch(e){}}
+      }
+    }
+    remotes={};
+    var _plb=document.getElementById('player-labels');if(_plb)_plb.innerHTML='';
+    _lblC=null;
+
+    /* 3. Montrer le canvas */
     if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
 
-    /* 3. NUCLEAR FIX doublon: vider TOUT _weaponScene sauf camera
-          (évite les weapon groups flottants de la session précédente) */
+    /* 4. NUCLEAR FIX doublon weaponScene: vider TOUT sauf camera */
     if(_weaponScene){
       var _toRm=[];
       _weaponScene.children.forEach(function(ch){if(ch!==camera)_toRm.push(ch);});
@@ -8597,9 +8628,14 @@ function _doStart(){
 
   // Minimap
   var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='block';
-  // NOTE: chan.publish('join',...) est fait dans _g_doInit() APRES initEngine
-  // Pour le re-spawn, publier immediatement
-  if(_g_started&&chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+  // Publier join pour declencher les autres a envoyer leur pos
+  if(_g_started&&chan){
+    chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+    /* Publier une 2e fois apres 800ms pour rattraper les lents */
+    setTimeout(function(){
+      if(gameOn&&chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+    },800);
+  }
   setTimeout(function(){
     var b=document.getElementById('btn-wpn-ig');if(b){b.style.display='flex';b.style.left='132px';b.style.top='6px';}
     var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';
@@ -8610,10 +8646,14 @@ function _doStart(){
    CRITIQUE: publier 'join' ICI, apres initEngine() + scene cree.
    Les autres repondront avec leur 'pos' → scene existe → characters crees. */
 function _g_doInit(){
+  /* Reset etat mort si besoin */
+  dead=false; hp=100; dyingT=0;
+  var _deadEl2=document.getElementById('dead');
+  if(_deadEl2)_deadEl2.style.setProperty('display','none','important');
+
   initEngine();
 
-  /* Reconstruire les personnages distants crees avant initEngine
-     (quand scene etait null, des chars vides ont pu etre mis dans remotes) */
+  /* Reconstruire les personnages distants (ceux recus avant initEngine) */
   for(var _rid in remotes){
     var _rm=remotes[_rid];
     if(_rm.mesh){try{scene.remove(_rm.mesh);}catch(e){}}
@@ -8632,8 +8672,10 @@ function _g_doInit(){
   if(!isMobile)setTimeout(function(){
     var cv=document.getElementById('c');if(cv)cv.requestPointerLock();},300);
 
-  /* Publier join ICI (scene existe): les autres repondront avec pos */
+  /* Publier join: les autres repondront avec pos → apparaissent immediatement */
   if(chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+  /* 2e publication apres 800ms pour les connexions lentes */
+  setTimeout(function(){if(gameOn&&chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});},800);
 
   /* Repositionner hamburger hors de la minimap */
   setTimeout(function(){
