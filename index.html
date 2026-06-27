@@ -3,12 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
-<meta name="theme-color" content="#0d0d0d">
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon-192.png">
 <title>WAR EAST 2022 v5.2</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
@@ -4577,23 +4571,24 @@ body.drone-active #btn-fire-l{
 <div id="orient"><div style="font-size:52px">📱</div><div>Tourne en mode paysage</div></div>
 <button id="fs-btn" onclick="toggleFs()" title="Plein écran">⛶</button>
 
-<!-- MENU v28 - Session unique globale -->
+<!-- MENU v29 - Session globale -->
 <div id="menu">
   <div class="m-title">WAR EAST</div>
   <div class="m-sub">2022 - FRONTLINE</div>
 
-  <!-- Pseudo + Settings -->
   <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:10px 0">
     <input id="user-name" maxlength="14" placeholder="Pseudo" value="Soldat"
       style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
       color:#fff;padding:9px 14px;font-size:15px;border-radius:8px;
       font-family:'Courier New',monospace;width:200px;text-align:center">
-    <button onclick="toggleSettings()" style="background:rgba(255,255,255,.1);
-      border:1px solid rgba(255,255,255,.25);color:#fff;padding:9px 12px;
-      font-size:18px;border-radius:8px;cursor:pointer">&#9881;</button>
+    <button onclick="toggleSettings()"
+      style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+      color:#fff;padding:9px 12px;font-size:18px;border-radius:8px;cursor:pointer">&#9881;</button>
   </div>
+
   <div id="settings-panel" style="display:none;margin:4px auto;background:rgba(0,0,0,.45);
-    border-radius:8px;padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;color:#ccc;max-width:300px">
+    border-radius:8px;padding:10px 14px;font-family:'Courier New',monospace;
+    font-size:12px;color:#ccc;max-width:300px">
     <div>Sensibilite : <b id="sens-val">1.0</b>x</div>
     <input type="range" id="sens-slider" min="0.3" max="3.5" step="0.1" value="1.0"
       oninput="setSens(this.value)" style="width:100%;margin:4px 0;accent-color:#FFD700">
@@ -4602,23 +4597,23 @@ body.drone-active #btn-fire-l{
       oninput="setFovBase(this.value)" style="width:100%;margin:4px 0;accent-color:#FFD700">
   </div>
 
-  <!-- Statut connexion -->
-  <div id="g-status" style="font-size:11px;color:rgba(255,255,255,.4);
-    font-family:'Courier New',monospace;margin:6px 0;text-align:center">Connexion...</div>
+  <!-- Statut serveur -->
+  <div id="g-status" style="margin:8px 0;font-size:11px;font-family:'Courier New',monospace;
+    color:rgba(255,255,255,.4);text-align:center">Connexion...</div>
 
   <!-- Joueurs en ligne -->
-  <div id="g-online" style="width:100%;max-width:380px;margin:6px auto;
-    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
-    border-radius:8px;padding:8px 12px;min-height:32px">
+  <div style="width:100%;max-width:380px;background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;
+    margin-bottom:12px">
     <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);
       font-family:'Courier New',monospace;margin-bottom:4px">JOUEURS EN LIGNE</div>
     <div id="g-players" style="font-size:11px;color:rgba(255,255,255,.5);
-      font-family:'Courier New',monospace">...</div>
+      font-family:'Courier New',monospace;min-height:16px">...</div>
   </div>
 
   <!-- Choix camp -->
   <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);
-    margin:10px 0 8px;font-family:'Courier New',monospace">CHOISIR UN CAMP</div>
+    margin-bottom:8px;font-family:'Courier New',monospace">CHOISIR UN CAMP</div>
   <div class="fg" style="justify-content:center;gap:12px;margin-bottom:12px">
     <button class="fc" id="fc-ua" onclick="g_selFaction('UA')" style="flex:1;max-width:180px">
       <div class="fc-flag">&#127482;&#127462;</div>
@@ -4632,14 +4627,13 @@ body.drone-active #btn-fire-l{
     </button>
   </div>
 
-  <!-- Choix escouade (visible apres camp) -->
+  <!-- Escouades -->
   <div id="g-squad-wrap" style="display:none;width:100%;max-width:380px;margin-bottom:12px">
     <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.4);
       margin-bottom:8px;font-family:'Courier New',monospace;text-align:center">CHOISIR UNE UNITE</div>
     <div id="g-squad-list"></div>
   </div>
 
-  <!-- SPAWN -->
   <button id="btn-spawn" class="play-btn" onclick="g_spawn()"
     style="display:none;width:100%;max-width:380px;margin-top:4px">SPAWN</button>
 
@@ -4649,36 +4643,61 @@ body.drone-active #btn-fire-l{
   <input id="srv" type="hidden">
 </div>
 
-<!-- DASHBOARD in-game (hamburger) -->
+<!-- DASHBOARD in-game -->
 <div id="squad-panel" style="display:none;position:fixed;inset:0;z-index:90;
-  background:rgba(0,0,0,.92);flex-direction:column;align-items:center;padding:14px 12px;overflow-y:auto">
-  <div style="display:flex;justify-content:space-between;width:100%;max-width:480px;margin-bottom:10px;align-items:center">
-    <div style="font-size:12px;letter-spacing:3px;font-weight:bold;font-family:'Courier New',monospace;color:#fff">TABLEAU DE BORD</div>
-    <div id="sp-code" style="color:#FFD700;font-size:11px;font-family:'Courier New',monospace;letter-spacing:2px">SERVEUR GLOBAL</div>
-    <button onclick="g_closeDash()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'Courier New',monospace">FERMER</button>
+  background:rgba(0,0,0,.93);flex-direction:column;align-items:center;
+  padding:14px 12px;overflow-y:auto">
+  <div style="display:flex;justify-content:space-between;width:100%;max-width:480px;
+    margin-bottom:10px;align-items:center">
+    <div style="font-size:12px;letter-spacing:3px;font-weight:bold;
+      font-family:'Courier New',monospace;color:#fff">TABLEAU DE BORD</div>
+    <div style="color:#FFD700;font-size:11px;font-family:'Courier New',monospace">
+      SERVEUR GLOBAL</div>
+    <button onclick="g_closeDash()"
+      style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+      color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;
+      font-size:12px;font-family:'Courier New',monospace">FERMER</button>
   </div>
   <div style="display:flex;gap:8px;width:100%;max-width:480px;margin-bottom:12px">
-    <div style="flex:1;background:rgba(0,60,160,.15);border:1px solid rgba(0,100,255,.22);border-radius:8px;padding:10px">
-      <div style="font-size:9px;letter-spacing:2px;color:#4488FF;font-family:'Courier New',monospace;margin-bottom:6px">UKRAINE</div>
-      <div id="dash-ua" style="font-size:11px;color:#88AACC;font-family:'Courier New',monospace;line-height:1.8"></div>
+    <div style="flex:1;background:rgba(0,60,160,.15);border:1px solid rgba(0,100,255,.22);
+      border-radius:8px;padding:10px">
+      <div style="font-size:9px;letter-spacing:2px;color:#4488FF;
+        font-family:'Courier New',monospace;margin-bottom:6px">UKRAINE</div>
+      <div id="dash-ua" style="font-size:11px;color:#88AACC;
+        font-family:'Courier New',monospace;line-height:1.8"></div>
     </div>
-    <div style="flex:1;background:rgba(160,0,0,.15);border:1px solid rgba(255,50,50,.22);border-radius:8px;padding:10px">
-      <div style="font-size:9px;letter-spacing:2px;color:#FF5555;font-family:'Courier New',monospace;margin-bottom:6px">RUSSIE</div>
-      <div id="dash-ru" style="font-size:11px;color:#CC8888;font-family:'Courier New',monospace;line-height:1.8"></div>
+    <div style="flex:1;background:rgba(160,0,0,.15);border:1px solid rgba(255,50,50,.22);
+      border-radius:8px;padding:10px">
+      <div style="font-size:9px;letter-spacing:2px;color:#FF5555;
+        font-family:'Courier New',monospace;margin-bottom:6px">RUSSIE</div>
+      <div id="dash-ru" style="font-size:11px;color:#CC8888;
+        font-family:'Courier New',monospace;line-height:1.8"></div>
     </div>
   </div>
-  <div id="dash-myunit" style="width:100%;max-width:480px;margin-bottom:8px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.18);border-radius:6px;padding:8px 12px;font-family:'Courier New',monospace;font-size:11px;color:#FFD700"></div>
-  <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:6px;font-family:'Courier New',monospace">CHANGER D'UNITE (respawn requis)</div>
-  <div id="dash-units" class="fg" style="gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px"></div>
+  <div id="dash-myunit" style="width:100%;max-width:480px;margin-bottom:8px;
+    background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.18);
+    border-radius:6px;padding:8px 12px;font-family:'Courier New',monospace;
+    font-size:11px;color:#FFD700"></div>
+  <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);
+    margin-bottom:6px;font-family:'Courier New',monospace">CHANGER D'UNITE</div>
+  <div id="dash-units" class="fg"
+    style="gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px"></div>
   <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:480px">
-    <button onclick="doRespawn();g_closeDash();" style="padding:12px;background:rgba(0,180,80,.2);border:1px solid rgba(0,200,80,.4);color:#44FF88;border-radius:8px;font-size:13px;letter-spacing:2px;cursor:pointer;font-family:'Courier New',monospace">REDEPLOYER</button>
-    <button onclick="g_quit()" style="padding:12px;background:rgba(200,0,0,.15);border:1px solid rgba(255,0,0,.3);color:#FF6666;border-radius:8px;font-size:13px;letter-spacing:2px;cursor:pointer;font-family:'Courier New',monospace">QUITTER</button>
+    <button onclick="doRespawn();g_closeDash();"
+      style="padding:12px;background:rgba(0,180,80,.2);border:1px solid rgba(0,200,80,.4);
+      color:#44FF88;border-radius:8px;font-size:13px;letter-spacing:2px;
+      cursor:pointer;font-family:'Courier New',monospace">REDEPLOYER</button>
+    <button onclick="g_quit()"
+      style="padding:12px;background:rgba(200,0,0,.15);border:1px solid rgba(255,0,0,.3);
+      color:#FF6666;border-radius:8px;font-size:13px;letter-spacing:2px;
+      cursor:pointer;font-family:'Courier New',monospace">QUITTER</button>
   </div>
 </div>
 
-<div id="player-labels" style="position:fixed;inset:0;pointer-events:none;z-index:20;overflow:hidden"></div>
-<div id="minimap-wrap" style="display:none;position:fixed;top:6px;left:6px;z-index:30;
-  width:120px;height:120px;border-radius:8px;overflow:hidden;
+<div id="player-labels" style="position:fixed;inset:0;pointer-events:none;
+  z-index:20;overflow:hidden"></div>
+<div id="minimap-wrap" style="display:none;position:fixed;top:6px;left:6px;
+  z-index:30;width:120px;height:120px;border-radius:8px;overflow:hidden;
   border:1px solid rgba(255,255,255,.2);background:rgba(8,12,8,.9)">
   <canvas id="minimap-cv" width="120" height="120"></canvas>
   <div style="position:absolute;bottom:2px;right:3px;font-size:7px;
@@ -8207,59 +8226,73 @@ function buildDrone(){
 
 <script>
 /* ================================================================
-   WE22 v28 - SESSION GLOBALE UNIQUE
-   Tout le monde rejoint automatiquement le même channel Ably.
-   Un seul serveur, toujours actif, comme un MMO.
-   Channel: fl22_WE22MAIN
+   WE22 v29 — SESSION GLOBALE + SUBFACTIONS
+   Basé sur v20 (multi fonctionnel).
+   Principe: appel de v20's initAbly+setupChan avec channel fixe.
+   NE PAS modifier setupChan, initAbly, loop, createChar de v20.
    ================================================================ */
 
-/* ── CONFIG ──────────────────────────────────────────────────── */
-var GLOBAL_ROOM = 'WE22MAIN'; // Le seul channel, pour tout le monde
-
-var _SF = {
-  UA_AZOV:   {f:'UA',sf:'AZOV',   name:'AZOV',         wpn:'M16A4',tape:0x00AA00,desc:'M16A4 | Scotch vert'},
-  UA_LEGION: {f:'UA',sf:'LEGION', name:'LEGION INT.',  wpn:'SCARH', tape:0x0055FF,desc:'SCAR-H | Scotch bleu'},
-  UA_REG:    {f:'UA',sf:'REG',    name:'ARMEE REG. UA',wpn:'AK74M', tape:0xFFD700,desc:'AK-74M | Scotch jaune'},
-  RU_REG:    {f:'RU',sf:'REG',    name:'ARMEE REG. RU',wpn:'AK74M', tape:0xDDDDDD,desc:'AK-74M | Scotch blanc'},
-  RU_VDV:    {f:'RU',sf:'VDV',    name:'VDV',          wpn:'AK12',  tape:0xCCCCCC,desc:'AK-12  | Scotch blanc'},
-  RU_WAGNER: {f:'RU',sf:'WAGNER', name:'WAGNER',       wpn:'ASVAL', tape:0xFF2200,desc:'AS Val | Scotch rouge'}
+var _SF={
+  UA_AZOV:  {f:'UA',sf:'AZOV',  name:'AZOV',        wpn:'M16A4',tape:0x00AA00,desc:'M16A4 | Scotch vert'},
+  UA_LEGION:{f:'UA',sf:'LEGION',name:'LEGION INT.', wpn:'SCARH', tape:0x0055FF,desc:'SCAR-H | Scotch bleu'},
+  UA_REG:   {f:'UA',sf:'REG',   name:'ARMEE REG.',  wpn:'AK74M', tape:0xFFD700,desc:'AK-74M | Scotch jaune'},
+  RU_REG:   {f:'RU',sf:'REG',   name:'ARMEE REG.',  wpn:'AK74M', tape:0xDDDDDD,desc:'AK-74M | Scotch blanc'},
+  RU_VDV:   {f:'RU',sf:'VDV',   name:'VDV',         wpn:'AK12',  tape:0xCCCCCC,desc:'AK-12  | Scotch blanc'},
+  RU_WAGNER:{f:'RU',sf:'WAGNER',name:'WAGNER',      wpn:'ASVAL', tape:0xFF2200,desc:'AS Val | Scotch rouge'}
 };
+var _g_online={};  // {id:{name,sfk}} — joueurs vus dans le lobby
 
-var _g_spawned = false;
-var _g_players = {}; // joueurs en ligne dans le menu
-
-/* ── CONNEXION GLOBALE (au chargement de la page) ─────────────
-   Tout le monde se connecte au même channel dès l'ouverture.
-   On voit immédiatement qui est en ligne.                      */
-function g_connect(){
-  var st = document.getElementById('g-status');
-  if(st) st.textContent = 'Connexion au serveur...';
-
-  roomCode = GLOBAL_ROOM;
-  inRoom = true;
+/* ── AUTO-CONNEXION GLOBALE ──────────────────────────────────────
+   On appelle directement initAbly + setupChan de v20 avec un
+   channel fixe. Même mécanique que v20, juste sans code à entrer. */
+function g_autoConnect(){
+  var uname=(document.getElementById('user-name')||{}).value||'Soldat';
+  myUsername=uname.trim()||'Soldat';
+  roomCode='WE22MAIN';
+  inRoom=true;
+  _g_online[myId]={name:myUsername,sfk:''};
 
   initAbly(function(){
-    chan = ablyClient.channels.get('fl22_' + GLOBAL_ROOM);
+    // Canal unique pour tout le monde - même appel qu'en v20
+    chan=ablyClient.channels.get('fl22_WE22MAIN');
+    setupChan(); // setupChan de v20 - NE PAS CHANGER
 
-    // PAS de setupChan() ici - scene n'existe pas encore.
-    // setupChan() sera appele dans _doStart() apres initEngine().
-    // Ici on ecoute uniquement les evenements de lobby.
-    chan.subscribe('join', function(msg){
-      if(msg.data && msg.data.id !== myId) g_onJoin(msg.data);
+    // Hook additionnel: mise à jour du lobby
+    chan.subscribe('join',function(msg){
+      var d=msg.data; if(!d||d.id===myId)return;
+      _g_online[d.id]={name:d.username||'?',sfk:d.sfk||''};
+      if(remotes[d.id]){remotes[d.id].username=d.username;if(d.sfk)remotes[d.id].sfk=d.sfk;}
+      g_updateLobby();
+    });
+    chan.subscribe('bye',function(msg){
+      if(msg.data&&msg.data.id){delete _g_online[msg.data.id];}
+      g_updateLobby();
     });
 
-    if(st) st.textContent = '\uD83D\uDFE2 Serveur en ligne · ' + (1+Object.keys(remotes).length) + ' joueur(s)';
-    setSt('ok', 'SERVEUR GLOBAL', '#44CC88');
-
-    var uname = (document.getElementById('user-name')||{}).value || 'Soldat';
-    myUsername = uname.trim() || 'Soldat';
-
-    // FIX: ajouter SOI-MEME dans la liste des joueurs
-    _g_players[myId] = {id:myId, name:myUsername, sfk:''};
-
-    chan.publish('join', {id:myId, sfk:'', username:myUsername});
-    g_updatePlayers();
+    // Annoncer sa présence
+    chan.publish('join',{id:myId,sfk:'',username:myUsername});
+    g_updateLobby();
+    setSt('ok','SERVEUR GLOBAL','#44CC88');
+    var st=document.getElementById('g-status');
+    if(st)st.textContent='\uD83D\uDFE2 Serveur en ligne';
   });
+}
+
+/* ── LOBBY: afficher joueurs en ligne ─────────────────────────── */
+function g_updateLobby(){
+  var html='';
+  for(var id in _g_online){
+    var p=_g_online[id]; var sf=_SF[p.sfk||''];
+    var col=sf?(sf.f==='UA'?'#4488FF':'#FF5555'):'rgba(255,255,255,.5)';
+    html+='<span style="color:'+col+';margin-right:10px">'+(sf?sf.name+' ':'')+
+          '<b>'+(p.name||'?')+'</b>'+(id===myId?' (moi)':'')+'</span>';
+  }
+  var el=document.getElementById('g-players');
+  if(el)el.innerHTML=html||'Aucun joueur...';
+  var st=document.getElementById('g-status');
+  if(st&&inRoom)st.textContent='\uD83D\uDFE2 Serveur en ligne \xB7 '+
+    Object.keys(_g_online).length+' joueur(s)';
+  if(faction)g_renderSquads(faction);
 }
 
 /* ── FACTION + ESCOUADE ──────────────────────────────────────── */
@@ -8273,29 +8306,32 @@ function g_selFaction(fac){
   var sw=document.getElementById('g-squad-wrap');if(sw)sw.style.display='block';
   g_renderSquads(fac);
   var bs=document.getElementById('btn-spawn');if(bs)bs.style.display='none';
-  if(chan) chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+  _g_online[myId].sfk=''; // pas encore d'escouade choisie
 }
 
 function g_renderSquads(fac){
   var keys=Object.keys(_SF).filter(function(k){return _SF[k].f===fac;});
   var html='';
   for(var i=0;i<keys.length;i++){
-    var k=keys[i]; var sf=_SF[k]; var isMe=(sfKey===k);
+    var k=keys[i];var sf=_SF[k];var isMe=(sfKey===k);
     var mems=[];
-    for(var pid in _g_players) if(_g_players[pid].sfk===k) mems.push(_g_players[pid].name||'?');
-    for(var rid in remotes) if((remotes[rid].sfk||'')===k) mems.push(remotes[rid].username||'?');
+    for(var pid in _g_online)if(_g_online[pid].sfk===k)mems.push(_g_online[pid].name||'?');
+    for(var rid in remotes)if((remotes[rid].sfk||'')===k)mems.push(remotes[rid].username||'?');
+    // Supprimer doublons
+    mems=mems.filter(function(v,i,a){return a.indexOf(v)===i;});
     var mStr=mems.length?' <span style="color:rgba(255,255,255,.35)">('+mems.join(', ')+')</span>':'';
     html+='<div style="display:flex;align-items:center;justify-content:space-between;'+
       'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,'+(isMe?'.28':'.08')+');'+
       'border-radius:8px;padding:9px 12px;margin-bottom:7px">'+
-      '<div>'+
-        '<div style="font-size:12px;font-weight:bold;color:'+(isMe?'#FFD700':'#fff')+';font-family:monospace">'+sf.name+'</div>'+
-        '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace">'+sf.desc+mStr+'</div>'+
-      '</div>'+
-      '<button data-sfk="'+k+'" onclick="g_joinUnit(this)"'+
-        ' style="padding:7px 14px;background:'+(isMe?'rgba(255,215,0,.2)':'rgba(255,255,255,.1)')+';'+
+      '<div><div style="font-size:12px;font-weight:bold;color:'+(isMe?'#FFD700':'#fff')+';'+
+        'font-family:monospace">'+sf.name+'</div>'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace">'+
+          sf.desc+mStr+'</div></div>'+
+      '<button data-sfk="'+k+'" onclick="g_joinUnit(this)" style="padding:7px 14px;'+
+        'background:'+(isMe?'rgba(255,215,0,.2)':'rgba(255,255,255,.1)')+';'+
         'border:1px solid '+(isMe?'rgba(255,215,0,.5)':'rgba(255,255,255,.2)')+';'+
-        'color:'+(isMe?'#FFD700':'#fff')+';border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace">'+
+        'color:'+(isMe?'#FFD700':'#fff')+';border-radius:6px;cursor:pointer;'+
+        'font-size:11px;font-family:monospace">'+
         (isMe?'SELECTIONNE':'REJOINDRE')+'</button></div>';
   }
   var sl=document.getElementById('g-squad-list');if(sl)sl.innerHTML=html;
@@ -8304,37 +8340,15 @@ function g_renderSquads(fac){
 function g_joinUnit(btn){
   var k=btn.getAttribute('data-sfk');if(!k||!_SF[k])return;
   var sf=_SF[k];
-  faction=sf.f; subfaction=sf.sf; sfKey=k; weapon=sf.wpn; tapeColor=sf.tape;
-  if(_g_players[myId])_g_players[myId].sfk=k;
+  faction=sf.f;subfaction=sf.sf;sfKey=k;weapon=sf.wpn;tapeColor=sf.tape;
+  if(_g_online[myId])_g_online[myId].sfk=k;
   if(chan)chan.publish('join',{id:myId,sfk:k,username:myUsername});
   g_renderSquads(sf.f);
   var bs=document.getElementById('btn-spawn');if(bs)bs.style.display='block';
 }
 
-function g_updatePlayers(){
-  var html='';
-  for(var id in _g_players){var p=_g_players[id];var sf=_SF[p.sfk||''];
-    html+=(sf?'<span style="color:'+(sf.f==='UA'?'#4488FF':'#FF5555')+'">'+sf.name+'</span> ':'')+
-      '<b>'+(p.name||'?')+'</b>'+(id===myId?' (moi)':'')+' &nbsp;';}
-  for(var rid in remotes){var r=remotes[rid];var rsf=_SF[r.sfk||''];
-    html+=(rsf?'<span style="color:'+(rsf.f==='UA'?'#4488FF':'#FF5555')+'">'+rsf.name+'</span> ':'')+
-      '<b>'+(r.username||'?')+'</b>'+' &nbsp;';}
-  var gp=document.getElementById('g-players');if(gp)gp.innerHTML=html||'Aucun joueur...';
-  if(faction) g_renderSquads(faction);
-  // Mettre a jour status
-  var st=document.getElementById('g-status');
-  if(st&&inRoom)st.textContent='🟢 Serveur en ligne · '+(1+Object.keys(remotes).length)+' joueur(s)';
-}
-
-function g_onJoin(d){
-  if(!d||!d.id)return;
-  _g_players[d.id]={id:d.id,name:d.username||'Joueur',sfk:d.sfk||''};
-  if(remotes[d.id]){remotes[d.id].username=d.username;if(d.sfk)remotes[d.id].sfk=d.sfk;}
-  g_updatePlayers();
-  g_dashUpdate();
-}
-
 /* ── SPAWN ────────────────────────────────────────────────────── */
+var _g_spawned=false;
 function g_spawn(){
   if(_g_spawned)return;
   if(!sfKey||!faction){alert('Choisissez une unite');return;}
@@ -8342,40 +8356,44 @@ function g_spawn(){
   startGame();
 }
 
-/* ── QUITTER (retour menu, reste connecte au channel) ─────────── */
+/* ── QUITTER (sans se déconnecter du channel) ─────────────────── */
 function g_quit(){
-  _g_spawned=false; gameOn=false;
-  if(chan)chan.publish('bye',{id:myId});
+  _g_spawned=false;
+  gameOn=false;
   g_closeDash();
-  var pl=document.getElementById('player-labels');if(pl)pl.innerHTML='';
-  var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='none';
+  // Cacher les éléments jeu
   var hud=document.getElementById('hud');if(hud)hud.style.display='none';
   var sco=document.getElementById('score-hud');if(sco)sco.style.display='none';
+  var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='none';
+  var pl=document.getElementById('player-labels');if(pl)pl.innerHTML='';
+  // Cacher canvas (sera ré-affiché par _doStart au re-spawn)
   if(renderer)renderer.domElement.style.display='none';
+  // Revenir au menu (garder connexion Ably)
   var menu=document.getElementById('menu');if(menu)menu.style.display='flex';
-  // Garder la connexion Ably active - juste retourner au menu
-  g_updatePlayers();
-  // Permettre de respawn via menu
   var bs=document.getElementById('btn-spawn');if(bs)bs.style.display=(sfKey?'block':'none');
+  if(chan)chan.publish('join',{id:myId,sfk:sfKey||'',username:myUsername});
+  g_updateLobby();
 }
 
-/* ── DASHBOARD (hamburger) ────────────────────────────────────── */
+/* ── DASHBOARD ────────────────────────────────────────────────── */
 function openSquadPanel(){
   var dp=document.getElementById('squad-panel');if(dp)dp.style.display='flex';
-  g_dashUpdate(); g_dashBuildUnits();
+  g_dashUpdate();g_dashBuildUnits();
 }
 function g_closeDash(){var dp=document.getElementById('squad-panel');if(dp)dp.style.display='none';}
 
 function g_dashUpdate(){
-  var uaH='',ruH='';
-  var myN=myUsername||'Soldat'; var mySF=_SF[sfKey];
-  if(faction==='UA')uaH+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
-  else ruH+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
-  for(var id in remotes){var r=remotes[id];var nm=r.username||'?';var rk=r.sfk||'';var rsf=_SF[rk];
-    var e='<div>'+nm+(rsf?' - '+rsf.name:'')+'</div>';if(rk.indexOf('UA')===0)uaH+=e;else ruH+=e;}
+  var ua='',ru='';
+  var myN=myUsername||'Soldat';var mySF=_SF[sfKey];
+  if(faction==='UA')ua+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
+  else ru+='<div style="color:#FFD700">'+myN+(mySF?' - '+mySF.name:'')+'</div>';
+  for(var id in remotes){var r=remotes[id];var nm=r.username||'?';
+    var rk=r.sfk||'';var rsf=_SF[rk];
+    var e='<div>'+nm+(rsf?' - '+rsf.name:'')+'</div>';
+    if(rk.indexOf('UA')===0)ua+=e;else ru+=e;}
   var ph='<div style="opacity:.3;font-size:10px">-</div>';
-  var eu=document.getElementById('dash-ua');if(eu)eu.innerHTML=uaH||ph;
-  var er=document.getElementById('dash-ru');if(er)er.innerHTML=ruH||ph;
+  var eu=document.getElementById('dash-ua');if(eu)eu.innerHTML=ua||ph;
+  var er=document.getElementById('dash-ru');if(er)er.innerHTML=ru||ph;
   var myU=_SF[sfKey];var du=document.getElementById('dash-myunit');
   if(du)du.textContent='Unite: '+(myU?myU.name+' | '+myU.desc:'?');
 }
@@ -8383,42 +8401,55 @@ function g_dashUpdate(){
 function g_dashBuildUnits(){
   var keys=Object.keys(_SF).filter(function(k){return _SF[k].f===faction;});
   var html='';
-  for(var i=0;i<keys.length;i++){var k=keys[i];var sf=_SF[k];var sel=(k===sfKey)?' sel-'+faction.toLowerCase():'';
-    html+='<button class="fc'+sel+'" data-sfk="'+k+'" onclick="g_dashChgUnit(this)" style="min-width:90px;padding:7px 4px">'+
+  for(var i=0;i<keys.length;i++){var k=keys[i];var sf=_SF[k];
+    var sel=(k===sfKey)?' sel-'+faction.toLowerCase():'';
+    html+='<button class="fc'+sel+'" data-sfk="'+k+'" onclick="g_dashChg(this)"'+
+      ' style="min-width:90px;padding:7px 4px">'+
       '<div style="font-size:9px;font-weight:bold">'+sf.name+'</div>'+
       '<div style="font-size:8px;color:rgba(255,255,255,.4)">'+sf.wpn+'</div></button>';}
   var dm=document.getElementById('dash-units');if(dm)dm.innerHTML=html;
 }
 
-function g_dashChgUnit(btn){
+function g_dashChg(btn){
   var k=btn.getAttribute('data-sfk');if(!k||!_SF[k])return;
   var sf=_SF[k];subfaction=sf.sf;sfKey=k;weapon=sf.wpn;tapeColor=sf.tape;
+  if(_g_online[myId])_g_online[myId].sfk=k;
   if(chan)chan.publish('join',{id:myId,sfk:k,username:myUsername});
-  if(wpGroup){_weaponScene.remove(wpGroup);wpGroup=null;} buildWeapon();g_closeDash();
+  // Reconstruire l'arme SANS créer de doublon
+  if(wpGroup){try{_weaponScene.remove(wpGroup);}catch(e){}wpGroup=null;}
+  buildWeapon();
+  g_closeDash();
+  g_dashUpdate();
 }
 
 /* ── MINIMAP ─────────────────────────────────────────────────── */
 var _mmC=null,_mmX=null;
-var _MMB=[[-55,-52,28,12],[0,-52,28,12],[55,-52,28,12],[-55,52,28,12],[0,52,28,12],[55,52,28,12],
+var _MMB=[[-55,-52,28,12],[0,-52,28,12],[55,-52,28,12],
+  [-55,52,28,12],[0,52,28,12],[55,52,28,12],
   [-24,-24,28,12],[24,-24,28,12],[-24,24,28,12],[24,24,28,12],
-  [-28,-12,7,4],[28,-12,7,4],[-28,12,7,4],[28,12,7,4],[-78,0,7,4],[78,0,7,4]];
+  [-28,-12,7,4],[28,-12,7,4],[-28,12,7,4],[28,12,7,4],
+  [-78,0,7,4],[78,0,7,4]];
 function g_minimap(){
   if(!gameOn||typeof pPos==='undefined')return;
   if(!_mmC){_mmC=document.getElementById('minimap-cv');if(!_mmC)return;_mmX=_mmC.getContext('2d');}
   var W=120,sc=W/200,ctx=_mmX;
   ctx.clearRect(0,0,W,W);ctx.fillStyle='rgba(8,14,8,.95)';ctx.fillRect(0,0,W,W);
-  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=0.5;
-  for(var g=0;g<=W;g+=12){ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,g);ctx.lineTo(W,g);ctx.stroke();}
+  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=.5;
+  for(var g=0;g<=W;g+=12){ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,W);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,g);ctx.lineTo(W,g);ctx.stroke();}
   ctx.fillStyle='rgba(140,130,110,.5)';
-  for(var b=0;b<_MMB.length;b++){var bl=_MMB[b];ctx.fillRect((bl[0]+100)*sc-bl[2]*sc/2,(bl[1]+100)*sc-bl[3]*sc/2,bl[2]*sc,bl[3]*sc);}
+  for(var b=0;b<_MMB.length;b++){var bl=_MMB[b];
+    ctx.fillRect((bl[0]+100)*sc-bl[2]*sc/2,(bl[1]+100)*sc-bl[3]*sc/2,bl[2]*sc,bl[3]*sc);}
   for(var rid in remotes){var rm=remotes[rid];if(!rm.mesh||!rm.visible)continue;
-    ctx.fillStyle=(rm.sfk&&rm.sfk.indexOf(faction.substring(0,2))===0)?'rgba(68,255,136,.9)':'rgba(255,60,60,.9)';
+    ctx.fillStyle=(rm.sfk&&rm.sfk.indexOf(faction.substring(0,2))===0)?
+      'rgba(68,255,136,.9)':'rgba(255,60,60,.9)';
     ctx.beginPath();ctx.arc((rm.mesh.position.x+100)*sc,(rm.mesh.position.z+100)*sc,3,0,Math.PI*2);ctx.fill();}
   var px=(pPos.x+100)*sc,pz=(pPos.z+100)*sc;
   ctx.save();ctx.translate(px,pz);ctx.rotate(pYaw);
-  ctx.fillStyle='rgba(80,160,255,1)';ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(-3,3);ctx.lineTo(0,1);ctx.lineTo(3,3);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(80,160,255,1)';ctx.beginPath();
+  ctx.moveTo(0,-5);ctx.lineTo(-3,3);ctx.lineTo(0,1);ctx.lineTo(3,3);ctx.closePath();ctx.fill();
   ctx.strokeStyle='rgba(200,230,255,.8)';ctx.lineWidth=1;ctx.stroke();ctx.restore();
-  ctx.strokeStyle='rgba(80,180,80,.3)';ctx.lineWidth=1;ctx.strokeRect(0.5,0.5,W-1,W-1);
+  ctx.strokeStyle='rgba(80,180,80,.3)';ctx.lineWidth=1;ctx.strokeRect(.5,.5,W-1,W-1);
 }
 
 /* ── LABELS ─────────────────────────────────────────────────── */
@@ -8430,132 +8461,145 @@ function g_labels(){
   var vv=new THREE.Vector3();
   for(var lid in remotes){
     var r=remotes[lid];var ally=r.sfk&&r.sfk.indexOf(faction.substring(0,2))===0;
-    if(!ally||!r.mesh||!r.visible||r._ragdolling){var e2=document.getElementById('lbl_'+lid);if(e2)e2.style.display='none';continue;}
+    if(!ally||!r.mesh||!r.visible||r._ragdolling){
+      var e2=document.getElementById('lbl_'+lid);if(e2)e2.style.display='none';continue;}
     var el=document.getElementById('lbl_'+lid);
     if(!el){el=document.createElement('div');el.id='lbl_'+lid;
-      el.style.cssText='position:absolute;transform:translateX(-50%);pointer-events:none;font-family:monospace;font-size:11px;font-weight:bold;color:#44FF88;text-shadow:0 0 5px rgba(0,255,80,.7);background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;display:none';
+      el.style.cssText='position:absolute;transform:translateX(-50%);pointer-events:none;'+
+        'font-family:monospace;font-size:11px;font-weight:bold;color:#44FF88;'+
+        'text-shadow:0 0 5px rgba(0,255,80,.7);background:rgba(0,0,0,.45);'+
+        'padding:2px 6px;border-radius:4px;white-space:nowrap;display:none';
       if(_lblC)_lblC.appendChild(el);}
     el.textContent=r.username||'?';
     r.mesh.getWorldPosition(vv);vv.y+=2.9;vv.project(camera);
     if(vv.z>1){el.style.display='none';continue;}
-    el.style.left=(((vv.x+1)/2)*W)+'px';el.style.top=(((-vv.y+1)/2)*H)+'px';el.style.display='block';
+    el.style.left=(((vv.x+1)/2)*W)+'px';el.style.top=(((-vv.y+1)/2)*H)+'px';
+    el.style.display='block';
   }
 }
 
-/* ── PATCH LOOP ────────────────────────────────────────────────── */
-var _v28_orig=loop;
-loop=function(ts){_v28_orig(ts);if(gameOn){g_minimap();g_labels();}};
+/* ── PATCH LOOP: ajouter minimap + labels ─────────────────────── */
+var _v29_orig=loop;
+loop=function(ts){_v29_orig(ts);if(gameOn){g_minimap();g_labels();}};
 function cycleWpnIG(){openSquadPanel();}
 
-/* ── OVERRIDES CRITIQUES ──────────────────────────────────────── */
+/* ── OVERRIDES CRITIQUES ─────────────────────────────────────────
+   selF en v20 fait document.getElementById('fc-ua-azov').className
+   qui n'existe plus → crash. On override pour juste setter les vars.
+   selSide: même problème avec '#wpn-step' etc.                   */
 function selF(f,sf){faction=f;subfaction=sf;sfKey=f+'_'+sf;}
 function selSide(side){g_selFaction(side);}
 
-/* _doStart — FIX triple:
-   1. initEngine + setupChan + loop : UNE SEULE FOIS (flag _g_started)
-   2. Re-spawn : uniquement reset position + afficher canvas
-   3. Canvas display:none remis a vide avant rendu             */
-var _g_started = false;
+/* ── _doStart: FIX BLACK SCREEN + DOUBLE BOUCLE + DOUBLON PERSO ─
+   Les 3 bugs du menu hamburger + retour viennent d'ici.
+   Solution: initEngine() UNE SEULE FOIS, re-spawn = reset only.  */
+var _g_started=false;
 function _doStart(){
   myUsername=((document.getElementById('user-name')||{}).value||'Soldat').trim()||'Soldat';
   sfKey=faction+'_'+subfaction;
   if(!tapeColor)tapeColor=(faction==='UA'?0xFFD700:0xCC2222);
   else if(faction==='RU'&&tapeColor===0xFFD700)tapeColor=0xCC2222;
 
-  /* Cacher le menu, afficher le HUD */
-  var _menu=document.getElementById('menu');if(_menu)_menu.style.display='none';
-  var _hud=document.getElementById('hud');if(_hud)_hud.style.display='block';
-  var _nsx=document.getElementById('nsx');if(_nsx)_nsx.style.display='block';
-  var _sco=document.getElementById('score-hud');if(_sco)_sco.style.display='block';
-  if(!isMobile){var _clk=document.getElementById('clk');if(_clk)_clk.style.display='block';}
+  // Cacher menu, montrer HUD
+  var _m=document.getElementById('menu');if(_m)_m.style.display='none';
+  var _h=document.getElementById('hud');if(_h)_h.style.display='block';
+  var _n=document.getElementById('nsx');if(_n)_n.style.display='block';
+  var _s=document.getElementById('score-hud');if(_s)_s.style.display='block';
+  if(!isMobile){var _c=document.getElementById('clk');if(_c)_c.style.display='block';}
 
-  /* Position de spawn */
-  var spZ=faction==='UA'?-82:82, spX=(Math.random()-.5)*16;
-  pPos.set(spX,tH(spX,spZ)+2,spZ); pYaw=faction==='UA'?Math.PI:0;
+  // Position spawn
+  var spZ=faction==='UA'?-82:82,spX=(Math.random()-.5)*16;
+  pPos.set(spX,tH(spX,spZ)+2,spZ);pYaw=faction==='UA'?Math.PI:0;
 
   if(!_g_started){
-    /* ── PREMIER SPAWN : init complète ── */
-    _g_started = true;
+    /* ═══ PREMIER SPAWN: init complète ═══ */
+    _g_started=true;
 
-    /* Detruire renderer de preview (conflit WebGL) */
+    // Détruire renderer preview (conflit WebGL)
     if(window._pvA){cancelAnimationFrame(window._pvA);window._pvA=null;}
-    if(window._pvR){try{window._pvR.forceContextLoss();window._pvR.dispose();}catch(e){}
-      window._pvR=null;window._pvS=null;window._pvC=null;}
+    if(window._pvR){
+      try{window._pvR.forceContextLoss();window._pvR.dispose();}catch(e){}
+      window._pvR=null;window._pvS=null;window._pvC=null;
+    }
 
-    /* Moteur 3D */
-    initEngine();
+    // Charger modele si absent (async) puis initEngine
+    if(!_soldierGLTF){
+      var _lm=document.getElementById('load-msg');if(_lm)_lm.style.display='block';
+      loadSoldierModel(function(){
+        if(_lm)_lm.style.display='none';
+        _g_doInit();
+      });
+    }else{
+      _g_doInit();
+    }
 
-    /* setupChan() ICI, apres initEngine(): scene existe -> scene.add() fonctionnera */
-    setupChan();
-
-    /* Canvas visible */
+  }else{
+    /* ═══ RE-SPAWN: réutiliser le moteur ═══ */
+    // Montrer le canvas (était caché par g_quit)
     if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
-
-    /* Demarrer la boucle UNE SEULE FOIS */
+    // Rebuild weapon sans doublon
+    if(wpGroup){try{_weaponScene.remove(wpGroup);}catch(e){}wpGroup=null;}
+    try{buildWeapon();}catch(e){}
+    // Remettre la camera dans weaponScene
+    if(scene&&camera){
+      if(scene.children.indexOf(camera)>=0)scene.remove(camera);
+      if(_weaponScene.children.indexOf(camera)<0)_weaponScene.add(camera);
+    }
+    gameOn=true;updateHUD();
     lastT=performance.now()/1000;
-    requestAnimationFrame(loop);
-
-    /* Camera dans weaponScene */
-    if(scene&&scene.children&&scene.children.includes(camera)){
-      scene.remove(camera);_weaponScene.add(camera);}
-
-    if(!isMobile)setTimeout(function(){var cv=document.getElementById('c');
-      if(cv)cv.requestPointerLock();},300);
-
-    /* Charger modele en arriere-plan si absent */
-    if(!_soldierGLTF){var _lm=document.getElementById('load-msg');if(_lm)_lm.style.display='block';
-      loadSoldierModel(function(){if(_lm)_lm.style.display='none';});}
-
-    setTimeout(function(){
-      var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';
-      var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';},300);
-
-  } else {
-    /* ── RE-SPAWN : reutiliser le moteur existant ── */
-    /* Juste remettre le canvas visible + reconstruire l'arme */
-    if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
-    if(wpGroup){_weaponScene.remove(wpGroup);wpGroup=null;}
-    buildWeapon();
-    lastT=performance.now()/1000;
-    /* S'assurer que la camera est dans weaponScene */
-    if(scene&&camera&&scene.children.includes(camera)){
-      scene.remove(camera);_weaponScene.add(camera);}
   }
 
+  // Minimap, annonce position
   var mw=document.getElementById('minimap-wrap');if(mw)mw.style.display='block';
-  gameOn=true;
-  updateHUD();
   if(chan)chan.publish('join',{id:myId,sfk:sfKey,username:myUsername});
+  setTimeout(function(){
+    var b=document.getElementById('btn-wpn-ig');if(b)b.style.display='flex';
+    var wl=document.getElementById('wpn-lbl');if(wl)wl.style.display='block';
+  },300);
 }
 
-/* Compat */
+/* Helper: init moteur + boucle (appelé UNE seule fois) */
+function _g_doInit(){
+  initEngine();
+  gameOn=true;updateHUD();
+  if(renderer){renderer.domElement.style.display='';renderer.domElement.style.filter='';}
+  lastT=performance.now()/1000;
+  requestAnimationFrame(loop); // UNE SEULE FOIS
+  if(scene&&scene.children.indexOf(camera)>=0){scene.remove(camera);_weaponScene.add(camera);}
+  if(!isMobile)setTimeout(function(){
+    var cv=document.getElementById('c');if(cv)cv.requestPointerLock();},300);
+}
+
+/* ── COMPAT v20 ──────────────────────────────────────────────── */
 function deployGame(){g_spawn();}
-function createRoom(){g_connect();}
-function joinRoom(){g_connect();}
+function createRoom(){g_autoConnect();}
+function joinRoom(){g_autoConnect();}
 function closeSquadPanel(){g_closeDash();}
 function respawnFromPanel(){doRespawn();g_closeDash();}
 function leaveSquad(){g_quit();}
-function copyRoomLink(){if(navigator.clipboard)navigator.clipboard.writeText(location.href);else prompt('URL:',location.href);}
 function showRoomStatus(){}
-function openSpawnPanel(){}
+function copyRoomLink(){if(navigator.clipboard)navigator.clipboard.writeText(location.href);}
 
-/* ── AUTO-CONNECT (des l'ouverture) ─────────────────────────────
-   Tout le monde rejoint le même channel global automatiquement.  */
+/* ── AUTO-CONNEXION AU CHARGEMENT ───────────────────────────────
+   Tout le monde rejoint fl22_WE22MAIN automatiquement.           */
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',function(){ setTimeout(g_connect,800); });
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(g_autoConnect,900);});
 }else{
-  setTimeout(g_connect,800);
+  setTimeout(g_autoConnect,900);
 }
 
-/* Mettre a jour le pseudo dans Ably si change */
+/* Sync pseudo si changé */
 var _g_uname_prev='';
 setInterval(function(){
   if(!inRoom||!chan)return;
-  var el=document.getElementById('user-name'); if(!el)return;
+  var el=document.getElementById('user-name');if(!el)return;
   var n=el.value.trim()||'Soldat';
-  if(n!==_g_uname_prev){_g_uname_prev=n;myUsername=n;
-    if(_g_players[myId])_g_players[myId].name=n;
-    chan.publish('join',{id:myId,sfk:sfKey||'',username:n});}
-}, 3000);
+  if(n!==_g_uname_prev){
+    _g_uname_prev=n;myUsername=n;
+    if(_g_online[myId])_g_online[myId].name=n;
+    chan.publish('join',{id:myId,sfk:sfKey||'',username:n});
+    g_updateLobby();
+  }
+},3000);
 
 </script>
