@@ -8736,3 +8736,417 @@ setInterval(function(){
 },3000);
 
 </script>
+
+<script>
+/* ================================================================
+   WE22 v33 — VISUAL ENHANCEMENT
+   1. Armes PBR (MeshStandardMaterial metalness/roughness)
+   2. Materials personnage améliorés après chargement GLTF
+   3. Ragdoll Euphoria-like (sous-articulations + direction impact)
+   4. Sang amélioré (spray directionnel, grosses éclaboussures)
+   5. Effets hit-reaction et kill
+   ================================================================ */
+
+/* ── 1. WEAPONS PBR ─────────────────────────────────────────────
+   Override wAdd: MeshLambertMaterial → MeshStandardMaterial
+   Résultat: reflets métalliques réalistes sur toutes les armes  */
+(function(){
+  var _ow = wAdd;
+  wAdd = function(g,w,h,d,col,px,py,pz,rx,ry,rz){
+    var isLight = (col>0xAAAAAA); // rail aluminium, hausse
+    var isMetal = !isLight && col<0x505050; // noir/acier
+    var isWood  = col>0x3A1A00 && col<0x8A5020; // bois
+    var mat = new THREE.MeshStandardMaterial({
+      color:col,
+      metalness: isWood?0.0 : isMetal?0.78 : isLight?0.55 : 0.45,
+      roughness: isWood?0.85: isMetal?0.28 : isLight?0.35 : 0.40,
+      depthTest:false, depthWrite:true
+    });
+    var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+    m.position.set(px||0,py||0,pz||0);
+    m.rotation.set(rx||0,ry||0,rz||0);
+    m.renderOrder=999; g.add(m);
+  };
+})();
+
+/* ── 2. CHARACTER MATERIALS PBR ────────────────────────────────
+   Après loadSoldierModel, on upgrade le modèle GLTF avec des
+   matériaux MeshStandardMaterial pour plus de profondeur 3D    */
+(function(){
+  var _olm = loadSoldierModel;
+  loadSoldierModel = function(cb){
+    _olm(function(){
+      /* Upgrade matériaux du personnage GLTF */
+      if(_soldierGLTF && _soldierGLTF.scene){
+        _soldierGLTF.scene.traverse(function(child){
+          if(!child.isMesh) return;
+          child.castShadow = true;
+          child.receiveShadow = true;
+          var old = child.material;
+          if(!old) return;
+          /* Convertir en MeshStandardMaterial PBR */
+          var isSkin = old.color && old.color.r > 0.6 && old.color.g > 0.45;
+          var isMetal= old.color && old.color.r < 0.25 && old.color.g < 0.25;
+          child.material = new THREE.MeshStandardMaterial({
+            color: old.color || new THREE.Color(0x446633),
+            map: old.map || null,
+            normalMap: old.normalMap || null,
+            roughness: isSkin ? 0.85 : isMetal ? 0.35 : 0.72,
+            metalness: isSkin ? 0.0  : isMetal ? 0.55 : 0.08,
+            envMapIntensity: 0.6
+          });
+        });
+      }
+      /* Ajouter tone mapping pour meilleur rendu */
+      if(renderer){
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.15;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+      }
+      cb();
+    });
+  };
+})();
+
+/* ── 3. RAGDOLL EUPHORIA-LIKE ──────────────────────────────────
+   Override startRagdoll avec:
+   - Direction d'impact (force latérale selon angle tir)
+   - Sous-articulations (avant-bras, mollets, poignets)
+   - Tête qui tombe mollement
+   - Corps qui glisse au sol (friction)                        */
+
+/* Stocker la dernière direction de tir reçue */
+var _v33hitDir = new THREE.Vector3(0,0,1);
+var _v33hitForce = 8;
+
+(function(){
+  var _osr = startRagdoll;
+  startRagdoll = function(mesh, sfk, hitDirOverride){
+    if(!mesh) return;
+    var ud = mesh.userData;
+    if(!ud) return;
+    ud._rdActive = true; ud._rdAge = 0; ud._rdOnGround = false;
+    var gy = tH(mesh.position.x, mesh.position.z);
+    var hd = hitDirOverride || _v33hitDir;
+    var force = _v33hitForce;
+
+    /* Position initiale: en l'air ou au sol */
+    if(mesh.position.y <= gy + 0.5){
+      mesh.position.y = gy;
+      ud._rdOnGround = true; ud._rdVelY = 0;
+      mesh.rotation.x = (hd.z > 0 ? 1 : -1) * (Math.PI*0.52 + (Math.random()-.5)*0.25);
+      mesh.rotation.y += hd.x * 0.8 + (Math.random()-.5)*1.0;
+      mesh.rotation.z = -hd.x * 0.4 + (Math.random()-.5)*0.3;
+    } else {
+      ud._rdVelY = -force * 0.8;
+      /* Impulsion latérale due à l'impact */
+      ud._rdVelX = hd.x * force * 0.6;
+      ud._rdVelZ = hd.z * force * 0.6;
+      mesh.rotation.x = -0.4 + (Math.random()-.5)*0.5;
+    }
+
+    /* Vitesses angulaires réalistes par membre */
+    var sign = Math.random()>.5?1:-1;
+    /* Bras G */
+    ud._rdALvx = -(3+Math.random()*5) * force/8;
+    ud._rdALvz = sign*(Math.random()*.6+.3) * force/8;
+    ud._rdALvy = hd.x * 2;
+    /* Avant-bras G (sous-articulation) */
+    ud._rdFALvx = -(4+Math.random()*6) * force/8;
+    ud._rdFALvz = (Math.random()-.5)*3;
+    /* Bras D */
+    ud._rdARvx = -(3+Math.random()*5) * force/8;
+    ud._rdARvz = -sign*(Math.random()*.6+.3) * force/8;
+    ud._rdARvy = -hd.x * 2;
+    /* Avant-bras D */
+    ud._rdFARvx = -(4+Math.random()*6) * force/8;
+    ud._rdFARvz = (Math.random()-.5)*3;
+    /* Jambe G */
+    ud._rdLLvx = (2+Math.random()*4) * force/8;
+    ud._rdLLvz = (Math.random()-.5)*2;
+    /* Mollet G */
+    ud._rdSLvx = (3+Math.random()*5) * force/8;
+    /* Jambe D */
+    ud._rdLRvx = (2+Math.random()*4) * force/8;
+    ud._rdLRvz = -(Math.random()-.5)*2;
+    /* Mollet D */
+    ud._rdSRvx = (3+Math.random()*5) * force/8;
+    /* Tête (tombe mollement en avant) */
+    ud._rdHvx = force * 0.4 + (Math.random()-.5)*3;
+    ud._rdHvz = hd.x * force * 0.3;
+    ud._rdHvy = (Math.random()-.5)*4;
+
+    /* Spawn sang + médaille */
+    var pos = new THREE.Vector3();
+    mesh.getWorldPosition(pos); pos.y += 1.0;
+    v33_spawnBloodSplash(pos, hd, force);
+    screenBlood();
+    spawnMedal(pos);
+  };
+})();
+
+/* Override updateRagdollMesh pour sous-articulations */
+(function(){
+  var _orum = updateRagdollMesh;
+  updateRagdollMesh = function(mesh, dt){
+    if(!mesh) return true;
+    var ud = mesh.userData;
+    if(!ud || !ud._rdActive) return true;
+
+    /* Appeler l'original pour la physique de base */
+    var done = _orum(mesh, dt);
+
+    /* ── Avant-bras G (sub-pivot sous armPivL) ── */
+    if(ud.armPivL && !ud._rdFAL){
+      /* Créer sous-pivot si pas encore créé */
+      var faG = new THREE.Object3D();
+      faG.position.set(0, -0.22, 0); // bout du bras
+      ud.armPivL.add(faG);
+      ud._rdFAL = faG;
+    }
+    if(ud._rdFAL){
+      ud._rdFALvx += (-Math.PI*.60 - ud._rdFAL.rotation.x)*5*dt;
+      ud._rdFALvx *= (1-dt*3.5);
+      ud._rdFAL.rotation.x = Math.max(-Math.PI*.8,
+        Math.min(0.1, ud._rdFAL.rotation.x + ud._rdFALvx*dt));
+      ud._rdFAL.rotation.z = Math.sin(ud._rdAge*3)*0.15*(1-Math.min(1,ud._rdAge));
+    }
+    /* ── Avant-bras D ── */
+    if(ud.armPivR && !ud._rdFAR){
+      var faD = new THREE.Object3D();
+      faD.position.set(0, -0.22, 0);
+      ud.armPivR.add(faD);
+      ud._rdFAR = faD;
+    }
+    if(ud._rdFAR){
+      ud._rdFARvx += (-Math.PI*.60 - ud._rdFAR.rotation.x)*5*dt;
+      ud._rdFARvx *= (1-dt*3.5);
+      ud._rdFAR.rotation.x = Math.max(-Math.PI*.8,
+        Math.min(0.1, ud._rdFAR.rotation.x + ud._rdFARvx*dt));
+      ud._rdFAR.rotation.z = -Math.sin(ud._rdAge*3)*0.15*(1-Math.min(1,ud._rdAge));
+    }
+    /* ── Tête: mouvement secondaire naturel ── */
+    if(ud.hG && ud._rdAge < 3){
+      ud._rdHvy = (ud._rdHvy||0);
+      ud._rdHvy += -ud.hG.rotation.y * 4*dt;
+      ud._rdHvy *= (1-dt*2.5);
+      ud.hG.rotation.y += ud._rdHvy * dt;
+      /* Oscillation amortie post-impact */
+      var osc = Math.sin(ud._rdAge*8)*0.08*Math.max(0,1-ud._rdAge*0.5);
+      ud.hG.rotation.z += osc*dt;
+    }
+    /* ── Glissement au sol avec friction ── */
+    if(ud._rdOnGround && (ud._rdVelX||ud._rdVelZ)){
+      ud._rdVelX = (ud._rdVelX||0) * (1-dt*4.5);
+      ud._rdVelZ = (ud._rdVelZ||0) * (1-dt*4.5);
+      mesh.position.x += (ud._rdVelX||0)*dt;
+      mesh.position.z += (ud._rdVelZ||0)*dt;
+    }
+    return done;
+  };
+})();
+
+/* ── 4. SANG AMÉLIORÉ ─────────────────────────────────────────
+   v33_spawnBloodSplash: spray directionnel + grande flaque     */
+var _bloodMat = new THREE.MeshStandardMaterial({
+  color:0xAA0000, roughness:0.9, metalness:0.0,
+  transparent:true, opacity:0.92
+});
+var _bloodPuddleMat = new THREE.MeshStandardMaterial({
+  color:0x7A0000, roughness:1.0, metalness:0.0,
+  transparent:true, opacity:0.85
+});
+
+function v33_spawnBloodSplash(pos, dir, force){
+  if(!scene) return;
+  var numDrops = Math.floor(12 + force * 2);
+  var _drops = [];
+  for(var i=0; i<numDrops; i++){
+    var size = 0.03 + Math.random()*0.06;
+    var geo = new THREE.SphereGeometry(size, 4, 4);
+    var drop = new THREE.Mesh(geo, _bloodMat.clone());
+    drop.position.copy(pos);
+    drop.position.y += Math.random()*0.5;
+    /* Spray orienté selon direction d'impact */
+    var spd = 2 + Math.random()*5;
+    var spread = 1.2;
+    drop.userData._bvx = (dir.x*(1+Math.random()*.5) + (Math.random()-.5)*spread) * spd;
+    drop.userData._bvy = 2 + Math.random()*4;
+    drop.userData._bvz = (dir.z*(1+Math.random()*.5) + (Math.random()-.5)*spread) * spd;
+    drop.userData._bage = 0;
+    scene.add(drop);
+    _drops.push(drop);
+  }
+  /* Grande flaque sous le corps */
+  var puddleGeo = new THREE.CylinderGeometry(0.35+Math.random()*0.25, 0.45+Math.random()*0.2, 0.02, 8);
+  var puddle = new THREE.Mesh(puddleGeo, _bloodPuddleMat.clone());
+  var gy = tH(pos.x, pos.z);
+  puddle.position.set(pos.x+(Math.random()-.5)*0.3, gy+0.015, pos.z+(Math.random()-.5)*0.3);
+  scene.add(puddle);
+  /* Animer les gouttes */
+  var _anim = setInterval(function(){
+    var dt = 0.016;
+    var allDone = true;
+    for(var j=_drops.length-1;j>=0;j--){
+      var d = _drops[j];
+      if(!d.parent){ _drops.splice(j,1); continue; }
+      d.userData._bage += dt;
+      if(d.userData._bage > 1.5){ scene.remove(d); _drops.splice(j,1); continue; }
+      d.userData._bvy -= 15*dt;
+      d.position.x += d.userData._bvx*dt;
+      d.position.y += d.userData._bvy*dt;
+      d.position.z += d.userData._bvz*dt;
+      var gy2 = tH(d.position.x,d.position.z);
+      if(d.position.y < gy2+0.01){
+        d.position.y = gy2+0.01;
+        d.userData._bvy = 0; d.userData._bvx *= 0.3; d.userData._bvz *= 0.3;
+      }
+      d.material.opacity = Math.max(0, 1-d.userData._bage*1.2);
+      allDone = false;
+    }
+    if(allDone) clearInterval(_anim);
+  }, 16);
+  /* Flaque qui grossit légèrement puis reste */
+  var _pg = 0;
+  var _pAnim = setInterval(function(){
+    _pg++;
+    var scale = Math.min(1, _pg/8)*1.2;
+    puddle.scale.set(scale, 1, scale);
+    if(_pg>=8) clearInterval(_pAnim);
+  }, 50);
+  setTimeout(function(){
+    if(puddle.parent){
+      puddle.material.opacity=0; scene.remove(puddle);
+    }
+  }, 25000);
+}
+
+/* ── 5. HIT REACTION ───────────────────────────────────────────
+   Quand on touche un ennemi: flash de hit + écran shake        */
+var _origScreenBlood = screenBlood;
+function v33_hitEffect(targetPos){
+  /* Flash jaune "HIT" */
+  if(!document) return;
+  var hEl = document.getElementById('dmg');
+  if(hEl){
+    hEl.style.background='rgba(255,200,0,.18)';
+    setTimeout(function(){if(hEl)hEl.style.background='transparent';}, 80);
+  }
+  /* Shake caméra léger */
+  if(camera){
+    var shk = 0.015;
+    camera.rotation.z += (Math.random()-.5)*shk;
+    camera.rotation.x += (Math.random()-.5)*shk*0.5;
+    setTimeout(function(){
+      camera.rotation.z *= 0.3;
+    }, 60);
+  }
+}
+
+/* ── 6. INTERCEPTER LES KILLS POUR DIRECTION IMPACT ───────────
+   Quand on fait une élimination, la direction bullet est connue */
+var _v33_orig_loop = loop;
+loop = function(ts){
+  _v33_orig_loop(ts);
+  /* Mise à jour direction d'impact depuis pYaw (où le joueur vise) */
+  if(gameOn){
+    _v33hitDir.set(Math.sin(pYaw), 0, Math.cos(pYaw));
+  }
+};
+
+/* ── 7. AMÉLIORER LE PERSONNAGE FALLBACK (sans GLTF) ──────────
+   Le personnage de secours est maintenant plus humanoïde
+   avec matériaux MeshStandardMaterial                         */
+(function(){
+  var _occ = typeof createChar === 'function' ? createChar : null;
+  if(!_occ) return;
+  createChar = function(sfk, tapeOverride){
+    /* Si le modèle GLTF est dispo, utiliser l'original */
+    if(_soldierGLTF && THREE.SkeletonUtils) return _occ(sfk, tapeOverride);
+    /* Personnage fallback amélioré */
+    var G = new THREE.Group();
+    var cfg = _SF && _SF[sfk] ? _SF[sfk] : {tape:0x44AA44};
+    var tapeCol = tapeOverride != null ? tapeOverride : (cfg.tape||0x44AA44);
+    var fac = sfk && sfk.indexOf('UA')===0 ? 'UA' : 'RU';
+    var uniCol  = fac==='UA' ? 0x4A6030 : 0x3A5028;
+    var helmCol = fac==='UA' ? 0x3A5020 : 0x2A3A18;
+    var skinCol = 0xC88860;
+    var mkS = function(col, rough, metal){
+      return new THREE.MeshStandardMaterial({color:col,roughness:rough,metalness:metal});
+    };
+    var S = 1.0;
+    /* Torse */
+    var torso = new THREE.Mesh(new THREE.BoxGeometry(.42*S,.46*S,.22*S), mkS(uniCol,.85,.02));
+    torso.position.set(0,.92*S,0); G.add(torso);
+    /* Scotch sur torse */
+    var tape = new THREE.Mesh(new THREE.BoxGeometry(.44*S,.06*S,.24*S), mkS(tapeCol,.7,.1));
+    tape.position.set(0,.98*S,0); G.add(tape);
+    /* Tête */
+    var head = new THREE.Mesh(new THREE.BoxGeometry(.26*S,.26*S,.26*S), mkS(skinCol,.85,.0));
+    head.position.set(0,1.45*S,0); G.add(head);
+    /* Casque */
+    var helm = new THREE.Mesh(new THREE.BoxGeometry(.30*S,.20*S,.30*S), mkS(helmCol,.9,.05));
+    helm.position.set(0,1.59*S,0); G.add(helm);
+    /* Yeux (détail) */
+    var eyeL = new THREE.Mesh(new THREE.BoxGeometry(.04*S,.04*S,.02*S), mkS(0x111111,1,0));
+    eyeL.position.set(-.07*S,1.44*S,-.13*S); G.add(eyeL);
+    var eyeR = eyeL.clone(); eyeR.position.set(.07*S,1.44*S,-.13*S); G.add(eyeR);
+    /* Bras G */
+    var armG = new THREE.Group();
+    var uaG = new THREE.Mesh(new THREE.BoxGeometry(.12*S,.24*S,.12*S), mkS(uniCol,.85,.02));
+    uaG.position.set(0,-.06*S,0); armG.add(uaG);
+    var faG = new THREE.Mesh(new THREE.BoxGeometry(.10*S,.20*S,.10*S), mkS(skinCol,.85,.0));
+    faG.position.set(0,-.24*S,0); armG.add(faG);
+    armG.position.set(-.28*S,.90*S,0);
+    G.add(armG);
+    /* Bras D */
+    var armD = armG.clone(); armD.position.set(.28*S,.90*S,0); G.add(armD);
+    /* Jambe G */
+    var legG = new THREE.Group();
+    var thG = new THREE.Mesh(new THREE.BoxGeometry(.14*S,.26*S,.14*S), mkS(uniCol,.85,.02));
+    thG.position.set(0,-.06*S,0); legG.add(thG);
+    var shG = new THREE.Mesh(new THREE.BoxGeometry(.12*S,.24*S,.12*S), mkS(0x1A1A1A,.9,.1));
+    shG.position.set(0,-.28*S,0); legG.add(shG);
+    /* Chaussure */
+    var shoeG = new THREE.Mesh(new THREE.BoxGeometry(.14*S,.08*S,.18*S), mkS(0x0A0A0A,.9,.1));
+    shoeG.position.set(0,-.42*S,.02*S); legG.add(shoeG);
+    legG.position.set(-.11*S,.56*S,0); G.add(legG);
+    /* Jambe D */
+    var legD = legG.clone(); legD.position.set(.11*S,.56*S,0); G.add(legD);
+    /* Sac à dos */
+    var pack = new THREE.Mesh(new THREE.BoxGeometry(.22*S,.30*S,.12*S), mkS(uniCol*.8,.9,.0));
+    pack.position.set(0,.88*S,.17*S); G.add(pack);
+    /* userData pour ragdoll */
+    G.userData.armPivL = armG;
+    G.userData.armPivR = armD;
+    G.userData.legPivL = legG;
+    G.userData.legPivR = legD;
+    G.userData.hG = head;
+    return G;
+  };
+})();
+
+/* ── 8. MEILLEUR RENDU SCÈNE ────────────────────────────────── */
+/* Améliorer les shadows et le tone mapping après initEngine    */
+(function(){
+  var _oie = initEngine;
+  initEngine = function(){
+    _oie();
+    if(renderer){
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
+      try{ renderer.outputEncoding = THREE.sRGBEncoding; }catch(e){}
+    }
+    /* Lumière de remplissage supplémentaire pour profondeur 3D */
+    if(scene){
+      var rim = new THREE.DirectionalLight(0x8899CC, 0.35);
+      rim.position.set(-60, 30, -80);
+      scene.add(rim);
+    }
+  };
+})();
+
+console.log('[WE22 v33] Visual enhancement loaded');
+</script>
